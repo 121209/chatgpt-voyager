@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Voyager",
+  "version": "0.1.0",
+  "description": "A ChatGPT-focused conversation navigator with timeline, folders, prompt snippets, exports, and quick actions.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "downloads"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://chatgpt.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "ChatGPT Voyager",
+    "default_popup": "src/popup/popup.html"
+  },
+  "options_page": "src/options/options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "src/shared/storage.js",
+        "src/content/formulaCopy/extractFormulaData.js",
+        "src/content/formulaCopy/clipboard.js",
+        "src/content/formulaCopy/FormulaCopyManager.js",
+        "src/content/content.js"
+      ],
+      "css": [
+        "src/content/formulaCopy/formulaCopy.css",
+        "src/content/content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

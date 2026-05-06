@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ChatGPT Voyager</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>ChatGPT Voyager</h1>
+        <a href="../options/options.html" target="_blank" rel="noreferrer">Options</a>
+      </header>
+
+      <section>
+        <h2>Folders</h2>
+        <div id="folders" class="list"></div>
+        <form id="folderForm">
+          <input id="folderName" type="text" maxlength="28" placeholder="New folder" required>
+          <button type="submit">Add</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Quick Settings</h2>
+        <label>
+          <input id="panelOpen" type="checkbox">
+          Show panel
+        </label>
+        <label>
+          <input id="autoRefresh" type="checkbox">
+          Auto refresh timeline
+        </label>
+        <label>
+          Export
+          <select id="exportFormat">
+            <option value="markdown">Markdown</option>
+            <option value="json">JSON</option>
+          </select>
+        </label>
+      </section>
+    </main>
+    <script src="../shared/storage.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

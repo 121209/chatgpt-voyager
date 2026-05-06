@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ChatGPT Voyager Options</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>ChatGPT Voyager</h1>
+      </header>
+
+      <section>
+        <h2>Prompt Library</h2>
+        <div id="prompts" class="prompts"></div>
+        <form id="promptForm">
+          <input id="promptTitle" type="text" maxlength="36" placeholder="Title" required>
+          <textarea id="promptText" rows="5" placeholder="Prompt text" required></textarea>
+          <button type="submit">Add Prompt</button>
+        </form>
+      </section>
+    </main>
+    <script src="../shared/storage.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

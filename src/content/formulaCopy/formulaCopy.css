@@ -1,0 +1,139 @@
+#cqr-formula-copy-toolbar.cfc-toolbar {
+  position: fixed;
+  z-index: 2147483647;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(37, 99, 235, 0.36);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.24);
+  opacity: 0;
+  pointer-events: auto;
+  transform: translateY(-4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+  backdrop-filter: blur(10px);
+}
+
+#cqr-formula-copy-toolbar.cfc-toolbar[hidden],
+.cfc-menu[hidden] {
+  display: none;
+}
+
+#cqr-formula-copy-toolbar.cfc-toolbar.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cfc-copy-button,
+.cfc-menu-item {
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+  font: 12px/1.35 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cfc-copy-button {
+  font-weight: 700;
+}
+
+.cfc-copy-button:hover,
+.cfc-copy-button:focus-visible,
+.cfc-menu-item:hover,
+.cfc-menu-item:focus-visible {
+  background: rgba(241, 245, 249, 0.96);
+  outline: none;
+}
+
+.cfc-copy-button:active,
+.cfc-menu-item:active {
+  transform: translateY(1px);
+}
+
+.cfc-menu {
+  z-index: 2147483647;
+  min-width: 148px;
+  display: grid;
+  gap: 3px;
+  padding-top: 3px;
+  border-top: 1px solid rgba(148, 163, 184, 0.28);
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 120ms ease;
+}
+
+.cfc-menu.is-visible {
+  opacity: 1;
+}
+
+.cfc-formula-active {
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+}
+
+.cfc-toast {
+  position: fixed;
+  z-index: 2147483647;
+  top: 24px;
+  right: 52px;
+  max-width: min(360px, calc(100vw - 64px));
+  padding: 9px 12px;
+  border: 1px solid rgba(34, 197, 94, 0.34);
+  border-radius: 8px;
+  background: rgba(240, 253, 244, 0.96);
+  color: #166534;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+  font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.cfc-toast.is-error {
+  border-color: rgba(239, 68, 68, 0.34);
+  background: rgba(254, 242, 242, 0.96);
+  color: #991b1b;
+}
+
+@media (prefers-color-scheme: dark) {
+  #cqr-formula-copy-toolbar.cfc-toolbar {
+    border-color: rgba(148, 163, 184, 0.24);
+    background: rgba(15, 23, 42, 0.96);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  }
+
+  .cfc-copy-button,
+  .cfc-menu-item {
+    color: #e5e7eb;
+  }
+
+  .cfc-copy-button:hover,
+  .cfc-copy-button:focus-visible,
+  .cfc-menu-item:hover,
+  .cfc-menu-item:focus-visible {
+    background: rgba(30, 41, 59, 0.92);
+  }
+
+  .cfc-menu {
+    border-top-color: rgba(71, 85, 105, 0.72);
+  }
+
+  .cfc-formula-active {
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2);
+  }
+
+  .cfc-toast {
+    border-color: rgba(74, 222, 128, 0.4);
+    background: rgba(20, 83, 45, 0.96);
+    color: #dcfce7;
+  }
+
+  .cfc-toast.is-error {
+    border-color: rgba(248, 113, 113, 0.44);
+    background: rgba(127, 29, 29, 0.96);
+    color: #fee2e2;
+  }
+}
