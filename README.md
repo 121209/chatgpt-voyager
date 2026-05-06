@@ -1,5 +1,7 @@
 # ChatGPT Voyager
 
+![ChatGPT Voyager promotional hero](assets/chatgpt-voyager-hero.png)
+
 ChatGPT Voyager 是一个面向 ChatGPT 网页端的 Manifest V3 浏览器插件。项目参考了 [Nagi-ovo/gemini-voyager](https://github.com/Nagi-ovo/gemini-voyager) 的产品方向，但当前代码是针对 ChatGPT DOM 重新实现的独立版本。
 
 插件目标是提升 ChatGPT 长对话的阅读、定位、整理、导出和公式复用效率。
