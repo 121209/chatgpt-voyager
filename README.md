@@ -242,15 +242,35 @@ ChatGPT Voyager 是一个面向 ChatGPT 网页端的 Manifest V3 浏览器插件
 
 当前提示词库主要提供本地管理能力，后续可继续扩展为页面内一键插入。
 
-## 开发与检查
+## 开发、检查与打包
 
-本项目目前没有构建打包流程，主要是原生 MV3 插件结构。可执行语法检查：
+安装依赖：
+
+```bash
+npm install
+```
+
+语法检查：
+
+```bash
+npm run check
+```
+
+生成可加载的插件目录：
 
 ```bash
 npm run build
 ```
 
-该命令会对主要 JavaScript 文件运行 `node --check`。
+该命令会先对主要 JavaScript 文件运行 `node --check`，然后生成 `dist/`。发布或本地测试 release 产物时，应在 Chrome / Edge 的“加载已解压的扩展程序”中选择 `dist/` 目录。
+
+仅重新生成 `dist/`：
+
+```bash
+npm run build:dist
+```
+
+`dist/`、`node_modules/` 和 zip 包不会提交到源码仓库。
 
 ## 项目结构
 
@@ -259,6 +279,15 @@ manifest.json
 package.json
 NOTICE.md
 README.md
+scripts/
+  build-dist.js
+assets/
+  chatgpt-voyager-hero.png
+  icons/
+    icon16.png
+    icon32.png
+    icon48.png
+    icon128.png
 src/
   background.js
   shared/

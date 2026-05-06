@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node --check src/content/formulaCopy/extractFormulaData.js && node --check src/content/formulaCopy/clipboard.js && node --check src/content/formulaCopy/FormulaCopyManager.js && node --check src/content/content.js && node --check src/background.js && node --check src/shared/storage.js && node --check src/popup/popup.js && node --check src/options/options.js"
+    "check": "node --check src/content/formulaCopy/extractFormulaData.js && node --check src/content/formulaCopy/clipboard.js && node --check src/content/formulaCopy/FormulaCopyManager.js && node --check src/content/content.js && node --check src/background.js && node --check src/shared/storage.js && node --check src/popup/popup.js && node --check src/options/options.js && node --check scripts/build-dist.js",
+    "build:dist": "node scripts/build-dist.js",
+    "build": "npm run check && npm run build:dist"
   }
 }
