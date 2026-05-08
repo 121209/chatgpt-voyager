@@ -381,8 +381,6 @@
     document.addEventListener("pointermove", handlePointerMove, true);
     document.addEventListener("mouseover", handleMouseOver, true);
     document.addEventListener("mouseout", handleMouseOut, true);
-    document.addEventListener("selectionchange", handleSelectionChange);
-    document.addEventListener("mouseup", handleSelectionMouseUp, true);
     window.addEventListener("scroll", () => {
       if (activeRoot && toolbar && !toolbar.hidden) {
         positionToolbarFromRect(activeRoot.getBoundingClientRect());
