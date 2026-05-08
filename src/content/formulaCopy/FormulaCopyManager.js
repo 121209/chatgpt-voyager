@@ -85,10 +85,6 @@
     }
   }
 
-  function looksLikeFormulaSelection(text) {
-    return /\\[a-zA-Z]+|[=+\-*/^_{}×÷±≤≥≈]|[A-Za-z]\s*[=+\-*/^_{}×÷]|θ|λ|π|∫|√|Σ|Δ|α|β|γ|cos|sin|tan|Gain|Bias|DN/.test(String(text || ""));
-  }
-
   function formulaDataFromRoot(root) {
     const formula = window.CQRFormulaExtract.extractFormulaData(root);
     if (formula) return formula;
@@ -191,103 +187,6 @@
     scheduleHide();
   }
 
-  function selectionRangeRect(selection) {
-    if (!selection || selection.rangeCount === 0) return null;
-    const rect = selection.getRangeAt(0).getBoundingClientRect();
-    if (!rect || (rect.width === 0 && rect.height === 0)) return null;
-    return rect;
-  }
-
-  function formulaRootFromSelection(selection) {
-    if (!selection || selection.rangeCount === 0) return null;
-    const range = selection.getRangeAt(0);
-    const container = range.commonAncestorContainer;
-    const element = container instanceof Element ? container : container.parentElement;
-    if (!element) return null;
-
-    return window.CQRFormulaExtract.findFormulaElement(element)
-      || element.closest?.(".katex-display, .katex")
-      || element.querySelector?.(".katex-display, .katex, math");
-  }
-
-  function showForCurrentSelection() {
-    const selection = window.getSelection?.();
-    const text = selection?.toString?.().trim() || "";
-    if (!text) return false;
-
-    const rect = selectionRangeRect(selection);
-    if (!rect) return false;
-
-    const root = formulaRootFromSelection(selection);
-    const selectionFormula = window.CQRFormulaExtract.extractLatexFromSelection();
-      if (!root && !selectionFormula && !looksLikeFormulaSelection(text)) {
-        return false;
-      }
-
-    const rootFormula = root ? formulaDataFromRoot(root) : null;
-    const formula = (rootFormula?.isReliableLatex ? rootFormula : null)
-      || selectionFormula
-      || rootFormula
-      || {
-        latex: text,
-        mathml: "",
-        isDisplay: /\n/.test(text),
-        source: "text-fallback",
-        isFallback: true,
-        isReliableLatex: false,
-        selectorMatched: "selection"
-      };
-
-    if (FORMULA_COPY_DEBUG) {
-      console.log("[FormulaCopy] formula detected", {
-        matchedSelector: formula.selectorMatched,
-        latex: formula.latex,
-        source: formula.source,
-        isReliableLatex: formula.isReliableLatex
-      });
-    }
-
-    showToolbar(root || {
-      getBoundingClientRect: () => rect,
-      classList: { add() {}, remove() {} },
-      contains: () => false
-    }, formula, rect, true);
-    return true;
-  }
-
-  function handleSelectionChange() {
-    window.setTimeout(() => {
-      showForCurrentSelection();
-    }, 0);
-  }
-
-  function handleSelectionMouseUp() {
-    window.setTimeout(() => {
-      if (showForCurrentSelection()) return;
-
-      const selection = window.getSelection?.();
-      const text = selection?.toString?.().trim() || "";
-      if (!text) return;
-
-      const rect = selectionRangeRect(selection);
-      if (!rect) return;
-
-      showToolbar({
-        getBoundingClientRect: () => rect,
-        classList: { add() {}, remove() {} },
-        contains: () => false
-      }, {
-        latex: text,
-        mathml: "",
-        isDisplay: /\n/.test(text),
-        source: "text-fallback",
-        isFallback: true,
-        isReliableLatex: false,
-        selectorMatched: "selection-fallback"
-      }, rect, true);
-    }, 30);
-  }
-
   function toggleMenu() {
     if (!menu) return;
     const shouldOpen = menu.hidden;
@@ -381,8 +280,6 @@
     document.addEventListener("pointermove", handlePointerMove, true);
     document.addEventListener("mouseover", handleMouseOver, true);
     document.addEventListener("mouseout", handleMouseOut, true);
-    document.addEventListener("selectionchange", handleSelectionChange);
-    document.addEventListener("mouseup", handleSelectionMouseUp, true);
     window.addEventListener("scroll", () => {
       if (activeRoot && toolbar && !toolbar.hidden) {
         positionToolbarFromRect(activeRoot.getBoundingClientRect());
