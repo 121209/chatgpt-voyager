@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Quick feedback
+    url: https://github.com/121209/chatgpt-voyager/issues/new/choose
+    about: Open the issue template chooser.

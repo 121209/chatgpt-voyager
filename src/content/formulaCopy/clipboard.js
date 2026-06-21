@@ -30,6 +30,10 @@
     return value;
   }
 
+  function normalizeSpacedLatexCommands(latex) {
+    return String(latex || "").replace(/(?<!\\)\\[\s\u00a0]+([A-Za-z]+)/g, "\\$1");
+  }
+
   function formatLatexForMarkdown(latex, isDisplay) {
     const body = stripMathDelimiters(latex);
     if (!body) return "";
@@ -389,6 +393,21 @@
   }
 
   function normalizeNaryForWpsLatex(latex) {
+    function normalizeWpsLatexInput(input) {
+      return normalizeSpacedLatexCommands(input)
+        .replace(/\\(?:operatorname\*?|mathrm|text|mbox)\s*\{([^{}]+)\}/g, "$1")
+        .replace(/\\(?:dfrac|tfrac)(?![A-Za-z])/g, "\\frac")
+        .replace(/\\det(?![A-Za-z])/g, "det")
+        .replace(/\\ne(?![A-Za-z])/g, "\\neq")
+        .replace(/\\(?:qquad|quad)(?![A-Za-z])/g, " ")
+        .replace(/\\mid(?![A-Za-z])/g, "|")
+        .replace(/\\left\s*/g, "")
+        .replace(/\\right\s*/g, "")
+        .replace(/\s*\n+\s*/g, " ")
+        .replace(/[ \t]{2,}/g, " ")
+        .trim();
+    }
+
     function groupedNary(operator, lower, upper) {
       const base = `\\${operator}_{${String(lower || "").trim()}}`;
       return upper ? `${base}^{${String(upper || "").trim()}}` : base;
@@ -403,7 +422,7 @@
       return output;
     }
 
-    const normalized = String(latex || "")
+    const normalized = normalizeWpsLatexInput(latex)
       .replace(/\\(sum|prod)(?![A-Za-z])_\{([^{}]+)\}\^\{([^{}]+)\}/g, (_, operator, lower, upper) => groupedNary(operator, lower, upper))
       .replace(/\\(sum|prod)(?![A-Za-z])_\{([^{}]+)\}\^([+-]?\d+|[A-Za-z0-9*])/g, (_, operator, lower, upper) => groupedNary(operator, lower, upper))
       .replace(/\\(sum|prod)(?![A-Za-z])_\{([^{}]+)\}/g, (_, operator, lower) => groupedNary(operator, lower))
@@ -978,6 +997,7 @@
     formatForMarkdownLatex,
     normalizeForWordLatex,
     normalizeNaryForWpsLatex,
+    normalizeSpacedLatexCommands,
     formatLatexForMarkdown,
     formatLatexForWps,
     formatLatexForNotion,

@@ -54,8 +54,8 @@
 
   function isProbablyLatex(text) {
     const value = String(text || "");
-    return /\\(cos|sin|tan|theta|alpha|beta|gamma|frac|sqrt|begin|end|sum|int|pm|cdot|left|right)\b/.test(value)
-      || /\\[a-zA-Z]+/.test(value)
+    return /\\\s*(cos|sin|tan|theta|alpha|beta|gamma|frac|sqrt|begin|end|sum|int|pm|cdot|left|right|mid|operatorname)\b/.test(value)
+      || /\\\s*[a-zA-Z]+/.test(value)
       || /[\^_]/.test(value) && /[{}]/.test(value)
       || /\\begin\{[^}]+\}/.test(value);
   }

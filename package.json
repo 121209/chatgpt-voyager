@@ -1,9 +1,11 @@
 {
   "name": "chatgpt-question-rail",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
-    "check": "node --check src/content/formulaCopy/extractFormulaData.js && node --check src/content/formulaCopy/clipboard.js && node --check src/content/formulaCopy/FormulaCopyManager.js && node --check src/content/content.js && node --check src/background.js && node --check src/shared/storage.js && node --check src/popup/popup.js && node --check src/options/options.js && node --check scripts/build-dist.js",
+    "check:regression-log": "node scripts/check-regression-log.js",
+    "serve:navigation-fixture": "node scripts/serve-navigation-fixture.js",
+    "check": "npm run check:regression-log && node scripts/check-question-directory-regression.js && node scripts/check-answer-overview-regression.js && node scripts/check-export-question-regression.js && node scripts/check-navigation-core-fixture.js && node scripts/check-official-line-navigation-regression.js && node scripts/check-formula-copy-regression.js && node --check tests/navigation-core-fixture.js && node --check src/content/formulaCopy/extractFormulaData.js && node --check src/content/formulaCopy/clipboard.js && node --check src/content/formulaCopy/FormulaCopyManager.js && node --check src/content/content.js && node --check src/background.js && node --check src/shared/storage.js && node --check src/popup/popup.js && node --check src/options/options.js && node --check scripts/build-dist.js && node --check scripts/check-regression-log.js && node --check scripts/check-question-directory-regression.js && node --check scripts/check-answer-overview-regression.js && node --check scripts/check-export-question-regression.js && node --check scripts/check-navigation-core-fixture.js && node --check scripts/check-official-line-navigation-regression.js && node --check scripts/check-formula-copy-regression.js && node --check scripts/serve-navigation-fixture.js",
     "build:dist": "node scripts/build-dist.js",
     "build": "npm run check && npm run build:dist"
   }

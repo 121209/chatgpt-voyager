@@ -1,0 +1,63 @@
+name: Feature request
+description: Suggest an idea or improvement for ChatGPT Question Rail.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe the scenario and why it would be useful.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem are you trying to solve?
+      placeholder: "Example: In long conversations, I want to quickly jump between important questions."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen?
+      placeholder: "Example: Add a search box to filter question rail entries by keyword."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature_area
+    attributes:
+      label: Feature area
+      options:
+        - Question rail navigation
+        - Question directory
+        - Conversation export
+        - PDF export
+        - Formula copy
+        - Word UnicodeMath
+        - WPS LaTeX
+        - UI / UX
+        - Performance
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any alternative approaches?
+      placeholder: "Describe any alternative solutions or workarounds."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add screenshots, references, or examples if helpful.
+      placeholder: "Attach screenshots, mockups, or links here."
+    validations:
+      required: false

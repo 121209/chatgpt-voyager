@@ -86,7 +86,7 @@
   }
 
   function looksLikeFormulaSelection(text) {
-    return /\\[a-zA-Z]+|[=+\-*/^_{}×÷±≤≥≈]|[A-Za-z]\s*[=+\-*/^_{}×÷]|θ|λ|π|∫|√|Σ|Δ|α|β|γ|cos|sin|tan|Gain|Bias|DN/.test(String(text || ""));
+    return /\\\s*[a-zA-Z]+|[=+\-*/^_{}×÷±≤≥≈]|[A-Za-z]\s*[=+\-*/^_{}×÷]|θ|λ|π|∫|√|Σ|Δ|α|β|γ|cos|sin|tan|Gain|Bias|DN/.test(String(text || ""));
   }
 
   function formulaDataFromRoot(root) {

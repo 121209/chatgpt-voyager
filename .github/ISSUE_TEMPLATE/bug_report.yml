@@ -1,0 +1,144 @@
+name: Bug report
+description: Report a bug or unexpected behavior in ChatGPT Question Rail.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide enough details so we can reproduce the issue.
+
+        If possible, attach screenshots or a short screen recording. You can drag and drop files into the GitHub issue editor.
+
+  - type: dropdown
+    id: bug_type
+    attributes:
+      label: Problem type
+      description: What kind of issue are you experiencing?
+      options:
+        - Question rail dot navigation is inaccurate
+        - Directory item navigation is inaccurate
+        - Long conversation positioning is inaccurate
+        - New messages are not detected
+        - Markdown export is incomplete
+        - PDF export is incorrect
+        - Formula copy does not work
+        - Word UnicodeMath output is incorrect
+        - WPS LaTeX output is incorrect
+        - UI display issue
+        - Performance / lag issue
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: Describe what happened.
+      placeholder: "Example: Clicking the 7th dot does not return to the corresponding user question."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Please provide clear reproduction steps.
+      placeholder: |
+        1. Open ChatGPT conversation page
+        2. Click the right-side question rail dot / directory item
+        3. Observe where the page scrolls
+        4. Compare with the expected message position
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+      placeholder: "Example: The page should scroll to the exact user question corresponding to the clicked dot."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+      placeholder: "Example: The page scrolled to a nearby assistant answer instead of the selected user question."
+    validations:
+      required: true
+
+  - type: input
+    id: conversation_length
+    attributes:
+      label: Conversation length
+      description: Approximately how many rounds/messages are in the ChatGPT conversation?
+      placeholder: "Example: about 20 rounds / about 100 messages / very long conversation"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: trigger_entry
+    attributes:
+      label: Which entry did you use?
+      description: Which UI entry triggered the problem?
+      options:
+        - Right-side dot
+        - Question directory list item
+        - Export panel
+        - Formula copy toolbar
+        - PDF preview page
+        - Other
+    validations:
+      required: false
+
+  - type: input
+    id: extension_version
+    attributes:
+      label: Extension version
+      description: The extension version you are using.
+      placeholder: "Example: v0.3.0"
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      description: Please provide your browser and version.
+      placeholder: "Example: Chrome 125 / Edge 125"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recording
+      description: Drag and drop screenshots or a short recording here if possible.
+      placeholder: "Attach screenshots or videos here."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Any other information that may help us reproduce the issue.
+      placeholder: "Console errors, special settings, whether the conversation was very long, etc."
+    validations:
+      required: false

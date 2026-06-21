@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voyager Navigation Core Fixture</title>
+    <link rel="stylesheet" href="../src/content/content.css">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f8fafc;
+        color: #0f172a;
+        font-family: system-ui, sans-serif;
+      }
+
+      #fixture-report {
+        position: fixed;
+        z-index: 10;
+        top: 12px;
+        left: 12px;
+        width: min(420px, calc(100vw - 100px));
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        font-size: 12px;
+      }
+
+      #fixture-report h1 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+
+      #fixture-status {
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+
+      #fixture-results {
+        display: grid;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      #fixture-results li[data-status="PASS"] {
+        color: #166534;
+      }
+
+      #fixture-results li[data-status="FAIL"] {
+        color: #991b1b;
+      }
+
+      #chat-scroll {
+        position: fixed;
+        inset: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: #ffffff;
+      }
+
+      #conversation {
+        position: relative;
+        width: min(760px, calc(100vw - 180px));
+        margin: 0 auto;
+      }
+
+      [data-testid^="conversation-turn-"] {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        min-height: 118px;
+        padding: 18px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #ffffff;
+      }
+
+      [data-message-author-role="user"] {
+        margin-left: auto;
+        width: fit-content;
+        max-width: 78%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: #e2e8f0;
+      }
+
+      [data-message-author-role="assistant"] {
+        max-width: 88%;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <aside id="fixture-report">
+      <h1>Voyager Navigation Core Fixture</h1>
+      <div id="fixture-status">RUNNING</div>
+      <ul id="fixture-results"></ul>
+    </aside>
+    <main id="chat-scroll">
+      <section id="conversation"></section>
+    </main>
+    <script src="navigation-core-fixture.js"></script>
+    <script src="../src/content/content.js"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        window.VoyagerNavigationFixture.run();
+      });
+    </script>
+  </body>
+</html>
