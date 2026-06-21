@@ -1,0 +1,66 @@
+name: Publish v0.3.0 Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release-v0.3.0.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    if: github.repository == '121209/chatgpt-voyager'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: v0.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build extension package
+        run: npm run build
+
+      - name: Package extension zip
+        run: |
+          cd dist
+          zip -r ../chatgpt-voyager-v0.3.0.zip .
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'NOTES'
+          ## Highlights
+
+          - Integrates with ChatGPT's official right-side question navigation and keeps Voyager's menu entry without drawing a second navigation rail.
+          - Adds a question-first export mode that can export all indexed questions, including records collected through scrolling or deep capture.
+          - Shows a local one-sentence answer overview under directory questions without reintroducing the removed prompt-based summary flow.
+          - Fixes WPS LaTeX output for split commands and WPS-fragile text-style commands.
+          - Adds regression checks and navigation fixtures for directory, export, official navigation integration, formula copy, and cached question identity.
+
+          ## Validation
+
+          - `npm run check:regression-log`
+          - `npm run check`
+          - `npm run build`
+          - `git diff --check`
+
+          Real ChatGPT page behavior still needs manual verification with `docs/MANUAL_TEST_CHECKLIST.md`.
+          NOTES
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v0.3.0 >/dev/null 2>&1; then
+            gh release edit v0.3.0 --title "ChatGPT Voyager v0.3.0" --notes-file release-notes.md
+            gh release upload v0.3.0 chatgpt-voyager-v0.3.0.zip --clobber
+          else
+            gh release create v0.3.0 chatgpt-voyager-v0.3.0.zip --title "ChatGPT Voyager v0.3.0" --notes-file release-notes.md
+          fi

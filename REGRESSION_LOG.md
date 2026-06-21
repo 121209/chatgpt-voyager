@@ -164,3 +164,12 @@
 - 回归测试：运行 `npm run check:regression-log`；运行 `npm run check`；运行 `npm run build`；运行 `git diff --check`。
 - 验证结果：已检查 `AGENTS.md`、`REGRESSION_LOG.md`、`manifest.json`、`package.json`、`.github/ISSUE_TEMPLATE/bug_report.yml`、`docs/GOAL_STATUS.md`、README、发布/打包脚本和当前 Git 标签；命中 `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息` 等发布候选相关记录，本次只做版本与发布状态对齐，不修改已验证的功能逻辑。
 - 相关文件：`manifest.json`、`package.json`、`.github/ISSUE_TEMPLATE/bug_report.yml`、`docs/GOAL_STATUS.md`、`REGRESSION_LOG.md`
+
+## 2026-06-21 - GitHub Release 缺少可执行发布通道
+
+- 问题现象：本机没有 `gh` CLI，GitHub App 连接器也没有 release 创建接口；仅推送 `v0.3.0` 标签不会自动生成 GitHub Release 页面和扩展 zip 资产，无法满足“发布 release 版本”的交付要求。
+- 影响范围：GitHub Release 页面、发布资产下载、后续用户按 release 安装扩展；不影响已推送到 `main` 的功能代码和 `v0.3.0` 标签。
+- 修复方式：新增一次性 GitHub Actions 发布工作流 `.github/workflows/release-v0.3.0.yml`，在该 workflow 文件推送到 `main` 时，从 `v0.3.0` 标签 checkout，运行 `npm run build`，压缩 `dist/` 为 `chatgpt-voyager-v0.3.0.zip`，并用仓库 `GITHUB_TOKEN` 创建或更新 `v0.3.0` GitHub Release。
+- 回归测试：运行 `npm run check:regression-log`；运行 `npm run check`；运行 `git diff --check`；推送后检查 GitHub Actions 和 Release 页面。
+- 验证结果：已检查 `AGENTS.md`、`REGRESSION_LOG.md`、`.github/ISSUE_TEMPLATE/*`、发布标签、打包脚本和本机 GitHub 工具可用性；本次只新增 release 发布通道，不修改扩展运行逻辑。
+- 相关文件：`.github/workflows/release-v0.3.0.yml`、`REGRESSION_LOG.md`
