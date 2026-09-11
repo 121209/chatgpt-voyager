@@ -173,3 +173,68 @@
 - 回归测试：运行 `npm run check:regression-log`；运行 `npm run check`；运行 `git diff --check`；推送后检查 GitHub Actions 和 Release 页面。
 - 验证结果：已检查 `AGENTS.md`、`REGRESSION_LOG.md`、`.github/ISSUE_TEMPLATE/*`、发布标签、打包脚本和本机 GitHub 工具可用性；本次只新增 release 发布通道，不修改扩展运行逻辑。
 - 相关文件：`.github/workflows/release-v0.3.0.yml`、`REGRESSION_LOG.md`
+
+## 2026-06-21 - 导出问题索引未复用官方可读导航条目
+
+- 问题现象：插件导出页的问题清单仍主要依赖 Voyager 自己通过当前 DOM、滚动和深度采集建立的问题索引；当 ChatGPT 网页端官方右侧横线导航已经识别到问题，但页面虚拟滚动尚未加载历史段落时，导出页不能主动利用官方导航中可读的问题标题。
+- 影响范围：导出页“问题”模式的问题数量、长对话未滚动历史段落的 Markdown 问题清单、导出状态提示；需继续避免破坏官方右侧横线不重复、目录完整性、重复问题身份和对话/PDF/图片只导出已加载消息的既有防线。
+- 修复方式：新增官方导航可读条目导入逻辑，只从非 Voyager 的右侧导航按钮/链接中读取 `aria-label`、`title`、可见文本等可复制标题，并过滤导航容器标签和不可读横线；导出页渲染前自动同步这些官方可读条目到问题索引和缓存，状态栏显示官方导航同步结果。官方导航不暴露正文时仍提示滚动或深度采集，不把不可读 marker 伪造成问题正文。扩展导出回归检查和真实内容脚本夹具，覆盖官方导航 `aria-label` 可读条目补入导出清单，同时继续检查不恢复插件自绘横线。
+- 回归测试：运行 `node --check src/content/content.js`；运行 `node --check tests/navigation-core-fixture.js`；运行 `node --check scripts/check-export-question-regression.js`；运行 `node --check scripts/check-navigation-core-fixture.js`；运行 `node scripts/check-export-question-regression.js`；运行 `node scripts/check-navigation-core-fixture.js`；运行 `node scripts/check-official-line-navigation-regression.js`；运行 `npm run check:regression-log`；运行 `npm run check`；运行 `git diff --check`。
+- 验证结果：已检查用户截图、`AGENTS.md`、`REGRESSION_LOG.md`、`src/content/content.js`、`src/content/content.css`、`tests/navigation-core-fixture.js`、`scripts/check-export-question-regression.js`、`scripts/check-navigation-core-fixture.js`、`scripts/check-official-line-navigation-regression.js`、`README.md` 和 `docs/MANUAL_TEST_CHECKLIST.md`；命中 `2026-05-29 - 三横线目录只显示部分问题`、`2026-06-15 - 相同或长前缀相同的问题被目录和滑轨合并`、`2026-06-16 - 插件横线与 ChatGPT 官方问题导航重复` 和 `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息`。本次只读取官方导航可复制文本，不接管官方点击/滚轮，不恢复插件横线；重复文本仍按出现顺序和稳定键合并。真实 ChatGPT 页面仍需重新加载扩展后人工确认官方导航是否实际暴露可读标题。
+- 相关文件：`src/content/content.js`、`src/content/content.css`、`tests/navigation-core-fixture.js`、`scripts/check-export-question-regression.js`、`scripts/check-navigation-core-fixture.js`、`README.md`、`docs/MANUAL_TEST_CHECKLIST.md`、`REGRESSION_LOG.md`
+
+## 2026-06-22 - 问题模式下 PDF 和图片导出按钮不可点击
+
+- 问题现象：导出页默认处于“问题”模式时，“导出 PDF”和“导出图片”按钮显示为灰色不可点击；用户会误以为导出功能失效。该问题直接来自 `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息` 中“问题模式仅支持 Markdown”的防线，该防线只考虑了历史助手 DOM 不完整，没有覆盖“问题清单本身也应能生成 PDF/图片”的使用场景。
+- 影响范围：导出页问题模式、问题清单 PDF 打印预览、问题清单 PNG 图片导出、导出按钮可用性和手工验收说明；需继续保留对话模式只导出当前已加载消息，避免声称导出未加载的历史回复。
+- 修复方式：将选中问题转换为独立的 `Question` 打印项，复用现有 PDF 预览/打印流程导出问题清单；新增问题清单图片渲染文档，复用原有分段截图到 Canvas 的 PNG 导出流程；移除问题模式下 PDF/图片按钮禁用逻辑，改为根据当前模式设置明确 tooltip。更新导出回归脚本和真实内容脚本夹具，要求问题模式下 PDF/图片按钮保持可点击，并禁止恢复旧的 Markdown-only 限制。
+- 回归测试：运行 `node --check src/content/content.js`；运行 `node --check tests/navigation-core-fixture.js`；运行 `node --check scripts/check-export-question-regression.js`；运行 `node scripts/check-export-question-regression.js`；运行 `node scripts/check-navigation-core-fixture.js`；运行 `node scripts/check-official-line-navigation-regression.js`；运行 `npm run check:regression-log`；运行 `npm run check`；运行 `git diff --check`。
+- 验证结果：已检查用户截图、`AGENTS.md`、`REGRESSION_LOG.md`、`src/content/content.js`、`scripts/check-export-question-regression.js`、`scripts/check-navigation-core-fixture.js`、`tests/navigation-core-fixture.js`、`README.md` 和 `docs/MANUAL_TEST_CHECKLIST.md`；命中 `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息` 和 `2026-06-21 - 导出问题索引未复用官方可读导航条目`。本次不改变对话模式的 DOM 消息导出边界，只让问题模式导出已记录问题清单。真实 ChatGPT 页面仍需重新加载扩展后人工确认问题模式下 PDF/图片按钮不再灰掉，并能打开打印预览或下载 PNG。
+- 相关文件：`src/content/content.js`、`scripts/check-export-question-regression.js`、`scripts/check-navigation-core-fixture.js`、`tests/navigation-core-fixture.js`、`README.md`、`docs/MANUAL_TEST_CHECKLIST.md`、`REGRESSION_LOG.md`
+
+## 2026-07-19 - Goal 状态基准落后于当前工作区
+
+- 问题现象：`docs/GOAL_STATUS.md` 仍以 2026-06-15 和 `e1e3e66` 为基准，盘点内容也来自更早的工作区；继续沿用会把当前官方导航条目同步、问题模式 PDF/PNG 和路线文档改动遗漏或错误归类为已验收。
+- 影响范围：后续开发交接、阶段判断、未提交改动保护和验收顺序；不影响扩展运行逻辑。
+- 修复方式：以 2026-07-19、当前 HEAD `9f55741` 和实际 `git diff --numstat` 重建状态文档，分别列出已完成、待验收和阻塞项，并明确仍处于阶段 0、不得提前开发下一阶段。本次不修改任何业务代码，也不清理用途未知的未跟踪文件。
+- 回归测试：本次为状态文档修复，没有新增业务测试；复用现有 `npm run check:regression-log`、`npm run check`、`npm run build` 和 `git diff --check`，并人工核对 `git status`、`git diff --stat`、`git diff --numstat`、HEAD 和状态文档表格。
+- 验证结果：已检查 `AGENTS.md`、`docs/VOYAGER_PLAN.md`、`docs/VOYAGER_MVP_SPEC.md`、旧 `docs/GOAL_STATUS.md`、`REGRESSION_LOG.md`、全部 10 个已跟踪改动文件、`.workbuddy/` 和 `代码.txt`；命中 2026-05-29 目录缺项、2026-06-15 重复问题合并、2026-06-16 官方导航重复与导出不完整、2026-06-21 官方可读导航未复用、2026-06-22 问题模式 PDF/PNG 禁用记录。`npm run check:regression-log`、`npm run check`、`npm run build` 和 `git diff --check` 均通过；仅有 LF/CRLF 转换警告。构建已刷新忽略目录 `dist/`，没有产生新的 Git 跟踪改动。
+- 相关文件：`docs/GOAL_STATUS.md`、`REGRESSION_LOG.md`
+
+## 2026-07-19 - 动态导航夹具在高速 Chrome 中过早断言
+
+- 问题现象：首次以本机 headless Chrome 动态运行 `basic` 导航夹具时，菜单入口已经初始化，但夹具立即读取目录和问题导出列表，得到 0 条并报错；补足初始化等待后，10 个功能断言逐项通过，但场景聚合计数仍沿用 9，导致页面最终状态被误报为 FAIL。
+- 影响范围：本地浏览器级导航回归证据；会把尚未完成 MutationObserver 防抖采集的正常初始化过程误报为目录/导出回归，但不直接证明真实 ChatGPT 页面存在缺陷。
+- 修复方式：在 basic 场景配置初始问题并等待菜单后，继续等待目录问题数达到预期，再进入同步断言，并把 basic 聚合计数与实际 10 个功能断言对齐；新增无第三方依赖的 `scripts/run-navigation-browser-fixture.js`，使用独立临时浏览器配置顺序运行 basic、virtualized、restore，解析页面最终状态，并复用同一配置验证缓存恢复；新增 `npm run check:browser-fixture`，同时把运行器语法检查接入 `npm run check`。
+- 回归测试：运行 `npm run check:browser-fixture`；运行 `npm run check:regression-log`；运行 `npm run check`；运行 `npm run build`；运行 `git diff --check`。
+- 验证结果：`npm run check:browser-fixture` 通过：basic 10 个功能断言、virtualized 4 个功能断言、restore 3 个功能断言全部 PASS，三个场景各自的“无未捕获运行时错误”检查也通过；`npm run check:regression-log`、`npm run check`、`npm run build` 和 `git diff --check` 均通过，仅有既有 LF/CRLF 转换提示。真实 ChatGPT 页面仍必须按 `docs/MANUAL_TEST_CHECKLIST.md` 人工验收，本地夹具结果不能替代该门槛。
+- 相关文件：`tests/navigation-core-fixture.js`、`scripts/run-navigation-browser-fixture.js`、`package.json`、`REGRESSION_LOG.md`
+
+## 2026-07-19 - Word UnicodeMath 复合分数丢失分组且文本函数命令破损
+
+- 问题现象：建立固定公式语料时，`\\frac{a+b}{c-d}` 被转换为有歧义的 `a+b/c-d`，根号内的复合分数也会改变运算分组；`\\mathrm{head}`、`\\mathrm{softmax}` 被通用命令处理破坏为 `\\mathrmhead`、`\\mathrmsoftmax`。
+- 影响范围：Word UnicodeMath 复制中的复合分数、根号内分数和科研/工程公式常见文本函数；不改变 WPS LaTeX、Markdown LaTeX、原始 LaTeX、导航或导出逻辑。命中 `2026-06-16 - WPS LaTeX 公式复制输出断裂命令` 和 `2026-06-16 - WPS LaTeX 不接受文本样式命令导致整段解析失败`，说明同类文本命令风险此前只在 WPS 路径被覆盖。
+- 修复方式：Word 分数转换分别判断分子、分母是否为原子项，包含加减或复杂结构时保留必要括号；在通用 UnicodeMath 命令替换前，将 `operatorname`、`mathrm`、`text`、`mbox` 包裹的纯文本函数转换为可读函数名，避免拼成未知反斜杠命令。矩阵和分段函数没有借此宣称支持，继续进入真实应用兼容性验收。
+- 回归测试：扩展 `scripts/check-formula-copy-regression.js`，精确检查复合分数 `(a+b)/(c-d)`、根号内分数 `√((a+b)/c)` 和 Word 文本函数不含破损命令；运行 `node scripts/check-formula-copy-regression.js`、`npm run check:stage0-acceptance`、`npm run check`、`npm run build` 和 `git diff --check`。
+- 验证结果：已检查 `AGENTS.md`、`REGRESSION_LOG.md`、`src/content/formulaCopy/clipboard.js`、`src/content/formulaCopy/extractFormulaData.js`、`src/content/formulaCopy/FormulaCopyManager.js`、`scripts/check-formula-copy-regression.js`、`docs/MANUAL_TEST_CHECKLIST.md` 和 20 个固定公式的转换输出；定向公式回归、`npm run check:browser-fixture`、`npm run check`、`npm run build` 和 `git diff --check` 均通过。最终 `dist/` 与 23 个构建输入逐文件 SHA-256 一致，0 缺失、0 不一致、0 额外文件。真实 Word/WPS 结果仍须写入 `docs/STAGE0_ACCEPTANCE.json`，不能用自动字符串结果替代。
+- 相关文件：`src/content/formulaCopy/clipboard.js`、`scripts/check-formula-copy-regression.js`、`docs/STAGE0_ACCEPTANCE.json`、`REGRESSION_LOG.md`
+
+## 2026-07-19 - 阶段 0 人工验收缺少统一可机检证据
+
+- 问题现象：`docs/MANUAL_TEST_CHECKLIST.md` 只描述操作步骤，没有统一结果文件、固定 20 公式语料或发布前完整性检查；即使用户实际测过，也无法自动区分未执行、通过、失败和阻塞，存在把自动检查误当作真实 ChatGPT/Word/WPS 通过的风险。
+- 影响范围：S0-03 真实 ChatGPT 验收、S0-04 Word/WPS 公式验收和 v0.3.1 发布准备；不修改扩展运行权限、UI 或数据处理。
+- 修复方式：新增 `docs/STAGE0_ACCEPTANCE.json` 作为权威记录，预填构建和浏览器环境、M-01 至 M-12、20 个固定公式及 Word/WPS 自动输出，所有真实状态保持 `NOT RUN`；新增 `scripts/check-stage0-acceptance.js` 校验版本一致性、记录结构、固定语料、WPS 历史防线和当前转换输出，提供公式提示生成及 `--require-complete` 发布门禁；新增说明文档并接入 `npm run check`。
+- 回归测试：运行 `node --check scripts/check-stage0-acceptance.js`；运行 `npm run check:stage0-acceptance`；确认 `npm run check:stage0-acceptance -- --require-complete` 在当前 0/12、0/20、0/20 状态下按预期失败；运行 `npm run check:regression-log`、`npm run check`、`npm run build` 和 `git diff --check`。
+- 验证结果：已检查 `AGENTS.md`、`REGRESSION_LOG.md`、`docs/MANUAL_TEST_CHECKLIST.md`、`docs/VOYAGER_PLAN.md`、`docs/VOYAGER_MVP_SPEC.md`、`docs/GOAL_STATUS.md`、Manifest/package 版本、公式转换实现和既有公式回归脚本；命中两条 2026-06-16 WPS 历史修复。`npm run check:stage0-acceptance` 通过并报告 ChatGPT 0/12、Word 0/20、WPS 0/20、发布门禁 PENDING；`--require-complete` 按预期失败，公式提示生成器输出 20 个编号；`npm run check:regression-log`、`npm run check`、`npm run build` 和 `git diff --check` 均通过。真实 ChatGPT、Word、WPS 仍未执行，未被误标为通过。
+- 相关文件：`docs/STAGE0_ACCEPTANCE.json`、`docs/STAGE0_ACCEPTANCE.md`、`docs/MANUAL_TEST_CHECKLIST.md`、`scripts/check-stage0-acceptance.js`、`package.json`、`docs/GOAL_STATUS.md`、`REGRESSION_LOG.md`
+
+## 2026-09-11 - README 内容重复且实现细节挤占使用说明
+
+- 问题现象：README 共 379 行，功能清单与使用方法重复，混入 DOM 选择器、后台消息、文件树和转换实现；安装步骤重复，支持域名说明包含无效的自引用。
+- 影响范围：项目首页和随扩展分发的 README；仅调整文档，不改运行逻辑。保留工作区已有的官方可读导航同步及问题模式 PDF/PNG 说明。
+- 修复方式：合并为功能、安装、使用、限制、开发及反馈来源；用表格明确导出范围和四种公式格式，保留源码/ZIP 安装、官方导航、深度采集、本地存储、兼容限制和来源说明，删除重复实现清单。
+- 历史关联：命中 `2026-06-16 - 插件横线与 ChatGPT 官方问题导航重复`、`2026-06-16 - 导出菜单只识别当前已加载的 24 条消息`、`2026-06-21 - 导出问题索引未复用官方可读导航条目` 及 2026-06-22 问题模式 PDF/PNG 修复记录；本次保留这些行为边界，属于文档精简而非功能再次失效。
+- 已检查本地文件：`AGENTS.md`、`REGRESSION_LOG.md`、`README.md` 及其已有 diff、`manifest.json`、`package.json`、`NOTICE.md`、`src/content/content.js`、`src/popup/popup.js`、`src/options/options.js`、`src/shared/storage.js`、`scripts/build-dist.js`、`scripts/check-regression-log.js`；同时对照 GitHub 项目首页。
+- 回归测试：纯文案调整不新增业务测试；运行 `npm run check:regression-log`、`npm run check`、`git diff --check`，检查 README 本地链接。人工验证步骤：预览 README，确认图片、表格、代码块正常，按安装章节核对扩展目录选择，再确认两种导出范围和公式格式说明完整。
+- 验证结果：README 从 379 行压缩为 81 行；`npm run check:regression-log`、`npm run check`、`git diff --check` 及 4 个本地图片/文档链接检查均通过，只有既有 LF/CRLF 提示。自动检查仍报告真实应用发布验收 PENDING，本次未执行浏览器及 Word/WPS 人工验收，因为仅修改文档；人工步骤见上项。
+- 相关文件：`README.md`、`REGRESSION_LOG.md`。
