@@ -314,5 +314,5 @@
 - 历史关联：引用本日三条修复记录（对话目录与导出消息识别失效、二次修复、三次修复）以及 `2026-07-19 - 阶段 0 人工验收缺少统一可机检证据`。发布遵循 v0.3.0 既有 GitHub Actions 发布模式；阶段 0 实站/Word/WPS 人工验收仍为 PENDING，本次发布不代表验收门槛已满足，Release 说明中明确标注该限制。
 - 修复方式：版本号统一升级为 0.4.0（manifest、package、验收 JSON 的 currentVersion 三处同步）；新建 tag 触发的 release-v0.4.0 工作流，checkout v0.4.0 标签后执行 `npm run build`、打包 dist 为 zip 并创建 GitHub Release；仅提交项目相关文件，不提交 `.workbuddy/`、`代码.txt`、`GPU教材每周复习题.html`、`output/`、` simplify README` 等未确认用途文件。
 - 回归测试：版本升级后重跑 `npm run check` 全链（回归日志门禁、6 项静态回归、stage0 验收门禁、语法检查）与 `npm run build`；发布后通过 GitHub API 验证 Release 与 zip 附件存在。
-- 验证结果：待发布完成后回填（Release URL 与附件核对结果）。
+- 验证结果：本地 `npm run check` 全链与 `npm run build` 在 0.4.0 版本下通过；`git push` 经 HTTPS 凭据管理器完成（本机 SSH 密钥未被 GitHub 接受），推送前合并了远端已有的 README 同步提交 788ccc0（回归日志冲突按本地超集解决，README 两边完全一致）。tag `v0.4.0` 推送后 GitHub Actions "Publish v0.4.0 Release" 运行成功；Release 页面 https://github.com/121209/chatgpt-voyager/releases/tag/v0.4.0 已创建（非 draft、非 prerelease），附件 `chatgpt-voyager-v0.4.0.zip` 存在且可下载。阶段 0 实站人工验收与 Word/WPS 公式验收仍为 PENDING，未随本次发布改变。
 - 相关文件：`manifest.json`、`package.json`、`docs/STAGE0_ACCEPTANCE.json`、`.github/workflows/release-v0.4.0.yml`、`REGRESSION_LOG.md`
