@@ -260,12 +260,17 @@
   function convertFractionsForUnicodeMath(input) {
     let value = String(input || "");
 
+    function isAtomicFractionPart(part) {
+      return /^[+-]?[A-Za-zΑ-ω0-9.]+(?:[_^](?:[A-Za-z0-9]|\([^()]+\)))*$/.test(String(part || "").trim());
+    }
+
     for (let pass = 0; pass < 4; pass += 1) {
       value = replaceTwoBraceCommand(value, "frac", (top, bottom) => {
         const numerator = formatForWordUnicodeMath(top);
         const denominator = formatForWordUnicodeMath(bottom);
-        const simple = /^[A-Za-z0-9+\-.]+$/.test(numerator) && /^[A-Za-z0-9+\-.]+$/.test(denominator);
-        return simple ? `${numerator}/${denominator}` : `(${numerator})/(${denominator})`;
+        const numeratorText = isAtomicFractionPart(numerator) ? numerator : `(${numerator})`;
+        const denominatorText = isAtomicFractionPart(denominator) ? denominator : `(${denominator})`;
+        return `${numeratorText}/${denominatorText}`;
       });
     }
 
@@ -274,6 +279,13 @@
 
   function convertGreekForUnicodeMath(input) {
     return String(input || "").replace(/\\(theta|gamma|mu|Sigma|omega)(?![A-Za-z])/g, (_, command) => unicodeCommand(command));
+  }
+
+  function normalizeTextFunctionsForUnicodeMath(input) {
+    return String(input || "").replace(
+      /\\(?:operatorname\*?|mathrm|text|mbox)\s*\{([^{}]+)\}/g,
+      "$1"
+    );
   }
 
   function formatUnicodeMathPart(text) {
@@ -301,6 +313,7 @@
   function formatForWordUnicodeMath(latex) {
     let value = normalizeOverbarForUnicodeMath(normalizeHatForUnicodeMath(stripMathDelimiters(latex).replace(/▒/g, " ")));
 
+    value = normalizeTextFunctionsForUnicodeMath(value);
     value = normalizeInverseTrigForUnicodeMath(value);
     value = convertNormAndAbsForUnicodeMath(value);
     value = convertFractionsForUnicodeMath(value);
@@ -1010,6 +1023,7 @@
     convertSqrtForUnicodeMath,
     convertNormAndAbsForUnicodeMath,
     convertGreekForUnicodeMath,
+    normalizeTextFunctionsForUnicodeMath,
     runFormulaCopyDebugTests,
     shouldPreferWordMathML,
     convertLatexToWordMathML,

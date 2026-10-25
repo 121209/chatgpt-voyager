@@ -1,0 +1,61 @@
+name: Publish v0.4.0 Release
+
+on:
+  push:
+    tags:
+      - v0.4.0
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    if: github.repository == '121209/chatgpt-voyager'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: v0.4.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build extension package
+        run: npm run build
+
+      - name: Package extension zip
+        run: |
+          cd dist
+          zip -r ../chatgpt-voyager-v0.4.0.zip .
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'NOTES'
+          ## Highlights
+
+          - Adds support for ChatGPT's new search-unit DOM structure (`data-chatgpt-search-unit-key` / `data-user-message-bubble`) after the old `data-message-author-role`, `data-turn`, and article nodes disappeared from the real page, restoring directory question collection and answer pairing.
+          - Directory, answer overviews, and conversation export now share one set of user/assistant selectors covering legacy role attributes, turn containers, and the new search units, so questions and answers can no longer be collected by two different code paths.
+          - Stable message identities (message IDs / search-unit keys) keep duplicate questions separate, migrate old cached entries, and pair each question with its own answer.
+          - MutationObserver now watches role attributes, character data, and delayed new-attribute appearance; streaming answer updates refresh the open panel.
+          - Fixes Word UnicodeMath composite fraction grouping and broken `\\mathrm` text function output; WPS LaTeX guards for split commands and unstable text-style commands are kept.
+
+          ## Validation
+
+          - 9 browser fixture scenarios (basic, virtualized, restore, compatibility, answer-pairing, answer-identity, modern-chat, modern-cache, real-snapshot): 36 functional assertions and 9 runtime error checks, all PASS.
+          - `npm run check` (regression log gate, static regressions, stage 0 acceptance gate) and `npm run build` pass.
+          - Real ChatGPT page behavior with the reloaded extension and Word/WPS formula acceptance still need manual verification; the stage 0 release gate remains PENDING.
+          NOTES
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v0.4.0 >/dev/null 2>&1; then
+            gh release edit v0.4.0 --title "ChatGPT Voyager v0.4.0" --notes-file release-notes.md
+            gh release upload v0.4.0 chatgpt-voyager-v0.4.0.zip --clobber
+          else
+            gh release create v0.4.0 chatgpt-voyager-v0.4.0.zip --title "ChatGPT Voyager v0.4.0" --notes-file release-notes.md
+          fi

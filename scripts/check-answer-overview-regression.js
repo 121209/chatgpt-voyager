@@ -35,6 +35,36 @@ assertContains(
 
 assertContains(
   contentJs,
+  "const userNodes = getUserMessages();",
+  "Answer pairing must reuse the directory's canonical user nodes, including role-free bubbles."
+);
+
+assertContains(
+  contentJs,
+  '[data-chatgpt-search-unit-key$=":assistant"]',
+  "Modern ChatGPT search-unit role attributes must be recognized even without articles or legacy roles."
+);
+
+assertContains(
+  contentJs,
+  "getSemanticMessageKey(node)",
+  "Modern question identity must preserve the page's stable message IDs across replacement and cache reload."
+);
+
+assertContains(
+  contentJs,
+  "pair.userMessage.turnNumber === question.turnNumber",
+  "Repeated questions must pair by stable turn identity before comparing text."
+);
+
+assertContains(
+  contentJs,
+  "return matches.length === 1 ? matches[0] : null;",
+  "Ambiguous text-only matches must not reuse a different question's reply."
+);
+
+assertContains(
+  contentJs,
   "function buildAssistantReplyOverview(",
   "The directory must build a one-sentence overview from the full assistant reply."
 );

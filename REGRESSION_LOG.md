@@ -238,3 +238,81 @@
 - 回归测试：纯文案调整不新增业务测试；运行 `npm run check:regression-log`、`npm run check`、`git diff --check`，检查 README 本地链接。人工验证步骤：预览 README，确认图片、表格、代码块正常，按安装章节核对扩展目录选择，再确认两种导出范围和公式格式说明完整。
 - 验证结果：README 从 379 行压缩为 81 行；`npm run check:regression-log`、`npm run check`、`git diff --check` 及 4 个本地图片/文档链接检查均通过，只有既有 LF/CRLF 提示。自动检查仍报告真实应用发布验收 PENDING，本次未执行浏览器及 Word/WPS 人工验收，因为仅修改文档；人工步骤见上项。
 - 相关文件：`README.md`、`REGRESSION_LOG.md`。
+
+## 2026-10-21 - 课程开发回顾语料的证据与状态核对
+
+- 问题现象：课程汇报需要复用插件开发过程中的提示词、图片、代码与 Goal 思路；若只按记忆复述，容易将官方界面、AI 宣传图、自动转换文本或历史候选状态误写为插件最新实测结果。
+- 影响范围：新增课程回顾资料 `output/course-retrospective-2026-10-21/`；不改产品代码、不改变既有未提交工作。用户明确只要充足语料，不制作 PPT。
+- 整理方式：从本地历史对话只读恢复原始提示词与仍存在的用户截图，分别标注原文、节选、整理说明和演示；用当前源码实际执行公式转换，对比 HEAD 中的复合分数转换输出；独立保存原图和可复制文本。历史提示词中已废弃的截断哈希去重、自绘滑轨要求单独说明，不作为当前实现建议。
+- 历史关联：引用 2026-05-29 目录缺项、2026-06-15 重复问题合并与总结流程纠偏、2026-06-16 官方导航重复及两次 WPS 失败、2026-07-19 Word 分数组合与人工验收证据记录；本次是证据整理，不声称再次修复产品缺陷。
+- 已检查本地文件：`AGENTS.md`、`REGRESSION_LOG.md`、`README.md`、`NOTICE.md`、`manifest.json`、`package.json`、`docs/` 中全部 Markdown、`docs/STAGE0_ACCEPTANCE.json`、导航内容脚本及样式、公式复制模块、导航夹具和相关检查脚本、当前 Git diff，以及仅与本项目相关的历史对话记录。
+- 回归测试：资料整理不新增业务测试；运行 `npm run check:regression-log`、`npm run check`、`npm run check:browser-fixture`、`git diff --check`，检查图片和文本来源、文档链接、可复制内容、页面排版，并对比任务开始时已有 12 个修改文件的 SHA-256 以确认未覆盖原有改动。
+- 验证结果：`npm run check`、`npm run check:regression-log`、`git diff --check` 通过；浏览器夹具先因沙箱内 Chrome/Edge 缓存/GPU 子进程启动问题失败，在获准使用的沙箱外隔离环境重跑后，basic 10、virtualized 4、restore 3 功能断言及三个运行时错误检查全部 PASS。额外保存 basic 场景真实浏览器截图 D01，明确它是本地夹具而非 ChatGPT 实站。HTML 主文档浏览器核验无脚本异常、无缺图，复制内容与原文一致，桌面和 720px 窄屏均无横向溢出；27 条原文、27 张 PNG、3 段代码与本地链接核对通过。任务开始时已有 12 个修改文件的 SHA-256 全部不变。已恢复早期 Word 结构改善的真实前后图，但没有找到当前 WPS 注意力公式成功实拍；转换输出展示不冒充目标软件实测，真实应用完整验收仍按现有记录保留为未完成。
+- 相关文件：`output/course-retrospective-2026-10-21/`、`output/.retrospective-work/`、`REGRESSION_LOG.md`。
+
+## 2026-10-21 - 课程语料单文件分享与代码案例补充
+
+- 问题现象：初版主 HTML 虽已嵌入正文图片，但完整提示词与部分素材仍链接到相邻文件；原有 3 段短代码不足以突出“大模型生成代码”的课程主题。
+- 影响范围：仅更新课程资料与生成/验证辅助脚本；保护全部既有插件和测试代码，未制作 PPT。
+- 历史关联：引用上一条“课程开发回顾语料的证据与状态核对”。初版验证的是素材包内链接存在，没有覆盖用户只转发一个 HTML 的阅读路径；本次增加移出素材目录的隔离验证。
+- 修复方式：补充 5 组提示词到代码的案例，含 7 个代码/补丁块共 124 行；首次滑轨与目录修复恢复历史模型实际输出，公式案例对照真实旧版与当前源码。将 27 条完整原文、27 张图片内嵌，附件入口改为文内跳转或 data 下载；保留原始图片、代码出处与验收边界。
+- 已检查本地文件：`AGENTS.md`、`REGRESSION_LOG.md`、原语料 HTML/Markdown、生成与验证脚本、原文索引、`src/content/content.js`、公式转换模块、公式回归检查，以及对应历史 fileChange 记录和当前 Git diff。
+- 验证方式：将单个 HTML 复制到没有附件的隔离目录，用 Chrome 检查缺图、相对依赖、提示词展开、复制内容、图片下载及宽窄屏；校对历史代码片段与源码，运行回归日志检查及 diff 检查。纯资料修改不重跑浏览器业务夹具，复用上一条同一业务文件哈希下的 PASS 结果。
+- 验证结果：隔离目录中的单文件 Chrome 验证通过，无本地附件依赖、缺图或脚本异常；27 条完整提示词、27 张图片、5 组代码案例均存在，文内原文展开、代码及提示词复制、图片下载逐字节比对通过，桌面及 720px 窄屏无横向溢出。剪贴板比较归一化 Windows CRLF 后文本一致。新增 JavaScript 摘录语法检查、`npm run check:regression-log` 与 `git diff --check` 通过；原有 12 个修改文件哈希不变。本轮未修改业务代码，未重复运行业务夹具；既有真实 ChatGPT/Word/WPS 未完成验收边界保持不变。
+- 相关文件：`output/course-retrospective-2026-10-21/01_开发回顾与展示语料.html`、`07_代码生成案例补充.md`、`code/E*`、`00_阅读说明.md` 及 `output/.retrospective-work/`。
+
+## 2026-10-25 - 对话目录与导出消息识别失效
+
+- 问题现象：用户报告目录不能识别问题、对话导出无法采集用户问题和 ChatGPT 回答。新增浏览器夹具在修复前复现 5 项失败：混合结构目录缺项、对话仅识别 1/6 条、回复文本更新不刷新、延迟角色属性不触发采集，以及包含 ChatGPT 的正常提问被过滤。
+- 原因及影响范围：`getLoadedMessages()` 仅扫描旧的 `data-message-author-role`，没有覆盖 `data-turn` 和消息 test-id；目录的正文过滤会将包含 ChatGPT/复制代码等词语的整句误判为生成内容；MutationObserver 未观察文本节点和角色属性，UI 渲染签名只包含问题位置，不包含回答变化。影响目录、回答概览、对话模式列表及 Markdown/PDF/图片共用的消息入口。当前实站 DOM 未能读取，根因描述限于已复现的本地代码缺陷。
+- 历史关联：引用 `2026-05-29 - 三横线目录只显示部分问题`、`2026-06-15 - 相同或长前缀相同的问题被目录和滑轨合并`、`2026-06-16 - 导出菜单只识别当前已加载的 24 条消息` 和 `2026-06-21 - 导出问题索引未复用官方可读导航条目`。之前防线覆盖旧 role DOM、问题数量和入口存在性，没有执行新旧角色标记混用、正文更新及实际导出内容的断言，因此未能阻止本次失效。
+- 修复方式：目录与导出采用共同的 user/assistant 角色选择器，兼容旧 role 属性、新 `data-turn` 和消息 test-id，优先消息正文并消除嵌套 wrapper 重复；回合标记回退时排除按钮、隐藏标签和思考区域，排除输入框/插件内容；将常见 UI 词过滤收窄到完整标签，保留正常提问；对话选择 key 优先稳定 turn；观察角色属性和 characterData，面板打开时将回答正文哈希纳入渲染签名。保留问题/对话分离、官方导航和已加载消息的导出边界。
+- 已检查本地文件：`AGENTS.md`、本日志、`src/content/content.js`、`src/content/content.css`、`manifest.json`、`package.json`、`src/shared/storage.js`、`tests/navigation-core-fixture.html`、`tests/navigation-core-fixture.js`、目录/导出/回答概览/官方导航回归脚本、浏览器夹具服务及运行器、构建和日志检查脚本；检查修改前完整 Git diff，并对照本轮修改前的文件副本检查新增差异，保留原有未提交修改。
+- 回归测试：新增 compatibility 浏览器场景 7 项，覆盖混合结构与重复问题、6 条 user/assistant 正文及顺序、草稿/思考/按钮排除、流式回答文本更新、勾选后的实际 Markdown 下载请求、PDF 预览正文、角色属性延迟出现及包含 ChatGPT 的正常提问。修正夹具在 Chromium 自带空 chrome 对象时未提供 runtime stub 的问题。默认浏览器测试接入该场景，同时保留 basic/virtualized/restore。
+- 验证结果：修复前 compatibility 的 5 个识别/刷新断言全部 FAIL；修复后 compatibility 7 项及运行时错误检查 PASS。最终完整浏览器运行 basic 10、virtualized 4、restore 3、compatibility 7，共 24 项功能断言和 4 项运行时错误检查全部 PASS；`npm run build`（包含完整 `npm run check`、`npm run check:regression-log` 和 dist 构建）、`git diff --check` 通过。沙箱内首次启动 Chrome 因 GPU 子进程退出失败，获准在沙箱外以独立临时配置运行同一本地夹具后通过。真实 ChatGPT 页面经用户授权尝试验证，但浏览器连接先报告 Debugger unattached，随后电脑控制因无法可靠确认当前 URL 而终止；停止 UI 操作，没有将本地夹具结果标为实站通过；实站、Word/WPS 等既有发布验收仍保持 PENDING。
+- 人工验证步骤：在 chrome://extensions 重新加载现有扩展（或加载本项目 dist 文件夹），刷新 ChatGPT 对话页；展开目录核对已加载问题，切换“导出 → 对话”核对交替的 User/Assistant 正文，分别导出 Markdown 和 PDF；新增回复时观察列表自动更新；长对话滚动经过历史段落后再核对。未加载的历史回答仍不承诺全量导出。
+- 相关文件：`src/content/content.js`、`tests/navigation-core-fixture.js`、`scripts/run-navigation-browser-fixture.js`、`scripts/check-navigation-core-fixture.js`、`REGRESSION_LOG.md`。
+
+## 2026-10-25 - 目录已识别问题但无法配对 GPT 回答（二次修复）
+
+- 问题现象：用户在上一条修复后截图仍显示“当前未识别到这个问题下面的 GPT 回复”，即目录已记录问题，但回答概览未建立。再次反馈要求优先彻底修复此链路。
+- 历史关联及防线失效原因：引用上一条 `2026-10-25 - 对话目录与导出消息识别失效`，以及 2026-06-02 回答配对、2026-06-15 重复问题身份与回答概览记录。上一轮虽然扩充了导出 role 选择器，但没有真正复用目录已有的无角色问题气泡回退，测试也未断言目录中的概览正文；因此目录和配对仍然可能各用一套问题节点。原有 `pairs.find()` 文本匹配还会把相同提问错误配到第一次的回答。
+- 已复现原因与影响范围：在上一版代码运行新 answer-pairing 场景，目录问题存在但概览缺失、对话导出缺 2 条、重复问题配错回答、共用回合结构漏采，4 项全部 FAIL。影响问题与回答的采集、配对、目录概览及共用消息入口的导出。实站 DOM 尚无法读取，不能据此声称已经穷尽用户页面的实际结构。
+- 修复方式：`getLoadedMessages()` 直接复用 `getUserMessages()` 的规范问题节点，确保目录与回答配对的问题正文及来源一致；只在对话回合中回退采集无 role 的 Markdown/Prose 回答，排除用户正文、插件、编辑区及思考区域；按实际 DOM 顺序合并，保留原节点、turnNumber 和独立的分段选择 key；配对优先稳定回合身份，只有唯一文本匹配时才回退；兼容同一回合同时包含用户与 assistant 正文，避免整段回答又被当成用户问题。
+- 已检查本地文件：用户截图、`AGENTS.md`、本日志、`src/content/content.js` 的问题识别/目录渲染/回答概览/导出/缓存相邻逻辑、`tests/navigation-core-fixture.js`、`scripts/check-answer-overview-regression.js`、`scripts/check-navigation-core-fixture.js`、`scripts/run-navigation-browser-fixture.js` 及工作区既有 Git diff；另保存二次修复前源码和夹具副本进行增量核对，保留原有修改。
+- 回归测试：新增默认运行的 answer-pairing 场景 6 项，实际断言目录概览包含正确回答内容，覆盖无 role 的中文问答、对应对话导出、相同提问各自的回答、同回合问答、附件外层与气泡正文不一致、多段回答合并/独立导出选择及思考排除；在回答概览检查脚本中加入复用目录节点和稳定身份/唯一匹配防线。
+- 验证结果：二次修复前新增的前 4 项断言全部 FAIL，修复后 6 项全部 PASS；最终完整浏览器运行 basic 10、virtualized 4、restore 3、compatibility 7、answer-pairing 6、answer-identity 1，共 31 项功能断言和 6 项运行时错误检查全部 PASS；另覆盖非数字回合标识的重复问题，通过实际源节点找到各自回答。`npm run build`（含 check/check:regression-log）和 `git diff --check` 通过。未声称真实页面修复已验证：浏览器连接继续超时；用户提供的 GPU教材每周复习题.html 为服务器启动壳，包含 0 个问题/回答/回合节点，未包含截图中的实际消息，未执行其中任何脚本。已请用户仅复制渲染后的 main 节点到问答DOM.txt，等待该文件核对真实回答结构后继续验证。
+- 人工验证步骤：重新加载本项目修复版扩展并刷新同一 ChatGPT 页面；确认该问题下出现包含实际回答内容的概览；切换“导出 → 对话”确认同时有问题和 GPT 正文；重复相同问题时核对每次各自的回答；若仍缺失，使用用户保存的页面结构继续定位，不把“重新采集”当成修复。
+- 相关文件：`src/content/content.js`、`tests/navigation-core-fixture.js`、`scripts/check-answer-overview-regression.js`、`scripts/check-navigation-core-fixture.js`、`scripts/run-navigation-browser-fixture.js`、`REGRESSION_LOG.md`。
+
+## 2026-10-25 - README 未突出三个核心功能及安装排查入口
+
+- 问题现象：组员将插件概括为“问题导航、对话导出、公式复制”，同时反馈安装后 ChatGPT 网页没有反应；GitHub README 仍是长篇实现清单，三个核心功能和页面内入口不够明确，本地精简版也尚未同步到 GitHub。
+- 原因及影响范围：首页以模块和实现细节组织内容，安装说明没有集中强调刷新现有页面、网站访问权限及入口触发方式；默认“问题”导出模式容易被误认为包含回答。本次只更新 README 和本条修复记录，不发布工作区其他尚未提交的功能改动，也不将文档更新视为实站兼容性修复。
+- 历史关联：对照本地 `2026-09-11 - README 内容重复且实现细节挤占使用说明`，该次已精简本地文档，但尚未同步 GitHub，且未突出三项核心能力与安装排查；继续保留 `2026-06-16 - 插件横线与 ChatGPT 官方问题导航重复` 和 `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息` 的行为边界。
+- 修复方式：首页首句明确三个核心功能，以表格对应能力和入口，使用章节按同一顺序展开；文件夹和提示词归为辅助功能；新增“安装后网页没有反应”五步排查，强调扩展重新加载后还须刷新页面；明确问题清单与已加载问答的区别，保留四种公式格式、兼容限制和来源说明。核对 GitHub 当前内容脚本，未将仅本地存在的官方标题同步、问题模式 PDF/PNG 能力写成已发布特性。
+- 已检查本地文件：`AGENTS.md`、本日志、`README.md`、`manifest.json`、`package.json`、`NOTICE.md`、`src/content/content.js`、`src/content/content.css`、`src/content/formulaCopy/FormulaCopyManager.js`、`src/content/formulaCopy/clipboard.js`、`src/popup/popup.js`、`src/options/options.js`、`scripts/build-dist.js`、`scripts/check-regression-log.js` 及已有 Git diff；另通过 GitHub 连接器读取远端 README、内容脚本和回归日志，区分公开版本与本地开发改动。
+- 回归测试：纯文档调整不新增业务测试；运行 `npm run check:regression-log`、`npm run check`、`git diff --check`，检查 README 本地图片/文档链接。人工验证步骤：预览 GitHub README，核对首句、三项功能表、安装步骤、导出范围表和公式格式表；按新增排查步骤确认加载目录、启用状态、访问权限及刷新顺序。
+- 验证结果：本地 `npm run check:regression-log`、`npm run check`、`git diff --check` 通过；真实 ChatGPT、Word/WPS 人工验收本次未执行，因为未修改运行逻辑，现有发布验收仍为 PENDING。GitHub 同步仅包含 README 和本条新增记录，保留远端原有日志及本地原有修改。
+- 相关文件：`README.md`、`REGRESSION_LOG.md`。
+
+## 2026-10-25 - 真实 ChatGPT 新搜索消息单元导致回答漏采（三次修复）
+
+- 问题现象：前两轮本地兼容修复后，用户真实页面仍识别不到该问题下的 GPT 回答；用户明确授权直接操作浏览器，要求聚焦核心问答采集。
+- 实站根因：通过浏览器读取“GPU教材每周复习题”的真实 DOM，确认旧 `data-message-author-role`、`data-turn`、`conversation-turn` 和 article 消息节点均不存在。真实页面以 `data-chatgpt-search-unit-key` / `data-content-search-unit-key` 的 `:user` / `:assistant` 后缀标记角色，以 `data-chatgpt-search-message-ids` 提供稳定身份，问题气泡使用 `data-user-message-bubble="true"`。旧目录通过 class 中的 user-message 偶然找到提问，但导出/配对没有覆盖新的 assistant 单元，因而出现截图中的缺失。
+- 历史关联与防线失效：引用本日“对话目录与导出消息识别失效”和“目录已识别问题但无法配对 GPT 回答（二次修复）”。之前只证明已知旧标记与 Markdown 回合结构通过；虽然明确保留实站未验证状态，但仍没覆盖完全无 article/旧角色属性的新单元。本轮用真实 DOM 在旧代码复现 FAIL，再修复同一 DOM 至 PASS，避免再次用模拟结构替代实站证据。
+- 修复方式：扩充公共 user/assistant 选择器与回合容器，识别实际搜索单元角色；规范问题节点优先精确的 data-user-message-bubble；从消息 ID 或搜索单元 key 生成稳定问题身份、去重键与导出 key，保留重复提问；兼容唯一旧位置缓存记录向新身份迁移，避免重新加载后重复索引；MutationObserver 覆盖这些新属性的延迟出现。继续保护旧结构、思考排除、同回合问答、官方导航与滚动行为。
+- 已检查本地文件：`AGENTS.md`、本日志、当前 Git status/diff、`src/content/content.js` 的采集/身份/序列化/缓存/配对/导出与观察器、导航夹具及相关回归检查脚本；通过用户授权的浏览器 UI/DOM API 获取实际页面主体。私有主体只保存在 `output/.export-repair-work/real-chat-main.html` 作本机复现，未放入 src、dist、ZIP 或公开测试语料；读取后移除脚本、外部媒体和 iframe 再用于离线测试，未执行保存页面中的脚本。
+- 回归测试：新增默认 modern-chat 与 modern-cache 场景，使用脱敏的真实属性结构，覆盖无旧角色/article 的 1 问 2 答、目录概览实际正文、定时生成的后续 assistant、重复问题/DOM 替换的稳定 ID 和旧缓存迁移；本机额外 real-snapshot 场景加载实际 DOM，直接断言原问题的目录概览不为空、对话列表有 3 条及两条 GPT 正文。修复前 modern-chat 与 real-snapshot 均 FAIL；修复后均 PASS。
+- 验证结果：最终 basic、virtualized、restore、compatibility、answer-pairing、answer-identity、modern-chat、modern-cache、real-snapshot 共 9 个浏览器场景全部 PASS（36 项功能断言、9 项运行时错误检查）；`npm run build`（含完整 check/check:regression-log）与 `git diff --check` 通过。旧缓存场景的首次断言过早读取了未绑定 DOM 的缓存项，已改为等待问题实际 loaded 后再验证概览，最终完整重跑通过。浏览器已成功读取真实内容并保存主体；重新加载扩展的 UI 操作未完成：Chrome 内部扩展页不支持接管，随后原生窗口控制因无法可靠确认当前 URL 而被工具中止，已停止进一步 UI 操作，没有把“真实 DOM 离线通过”写成“原网页已重载并通过”。用户无需再执行控制台或保存 DOM，只需重新加载修复版扩展并刷新对话页。
+- 相关文件：`src/content/content.js`、`tests/navigation-core-fixture.js`、`scripts/run-navigation-browser-fixture.js`、`scripts/check-navigation-core-fixture.js`、`scripts/check-answer-overview-regression.js`、`REGRESSION_LOG.md`。
+
+## 2026-10-25 - 发布 v0.4.0 到 GitHub Release
+
+- 问题现象：本地已完成 2026-10-25 三轮消息识别修复（旧角色标记失效、回答配对失败、真实 ChatGPT 新搜索单元结构漏采），9 个浏览器场景 36 项断言全部 PASS，但这些修复停留在本地工作区未提交；用户要求把修复后的最新版本以 v0.4 版本发布到 GitHub Release。
+- 影响范围：`manifest.json`、`package.json`、`docs/STAGE0_ACCEPTANCE.json` 的版本号；新增 `.github/workflows/release-v0.4.0.yml` 发布工作流；本地未提交的 15 个跟踪文件修改与 4 个验收相关未跟踪文件将随发布提交。
+- 历史关联：引用本日三条修复记录（对话目录与导出消息识别失效、二次修复、三次修复）以及 `2026-07-19 - 阶段 0 人工验收缺少统一可机检证据`。发布遵循 v0.3.0 既有 GitHub Actions 发布模式；阶段 0 实站/Word/WPS 人工验收仍为 PENDING，本次发布不代表验收门槛已满足，Release 说明中明确标注该限制。
+- 修复方式：版本号统一升级为 0.4.0（manifest、package、验收 JSON 的 currentVersion 三处同步）；新建 tag 触发的 release-v0.4.0 工作流，checkout v0.4.0 标签后执行 `npm run build`、打包 dist 为 zip 并创建 GitHub Release；仅提交项目相关文件，不提交 `.workbuddy/`、`代码.txt`、`GPU教材每周复习题.html`、`output/`、` simplify README` 等未确认用途文件。
+- 回归测试：版本升级后重跑 `npm run check` 全链（回归日志门禁、6 项静态回归、stage0 验收门禁、语法检查）与 `npm run build`；发布后通过 GitHub API 验证 Release 与 zip 附件存在。
+- 验证结果：待发布完成后回填（Release URL 与附件核对结果）。
+- 相关文件：`manifest.json`、`package.json`、`docs/STAGE0_ACCEPTANCE.json`、`.github/workflows/release-v0.4.0.yml`、`REGRESSION_LOG.md`

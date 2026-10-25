@@ -20,6 +20,11 @@ if (!source.includes("function getExportQuestions()") || !source.includes("retur
   fail("Question export must reuse getDirectoryQuestions() so it can export cached and deeply captured questions.");
 }
 
+if (!source.includes("function getOfficialQuestionNavigationEntries()")
+  || !source.includes("syncOfficialNavigationQuestions({ render: false, persist: true });")) {
+  fail("Question export must try to import readable ChatGPT official navigation entries before rendering choices.");
+}
+
 if (!source.includes("function getQuestionExportKey(question)")) {
   fail("Question export selection must use a stable question key instead of list position only.");
 }
@@ -46,13 +51,22 @@ if (!renderExportBlock[0].includes('["questions", "问题"]') || !renderExportBl
   fail("The export panel must keep separate question and conversation modes.");
 }
 
-if (!source.includes("pdfButton.disabled = exportMode === \"questions\"")
-  || !source.includes("imageButton.disabled = exportMode === \"questions\"")) {
-  fail("Question mode must disable PDF and PNG exports because unloaded historical assistant DOM cannot be cloned.");
+if (!source.includes("function getSelectedRichQuestions()")
+  || !source.includes("renderQuestionsToPngBlob")
+  || !source.includes("ChatGPT Questions Export")) {
+  fail("Question mode must support PDF and PNG exports from the selected question list.");
+}
+
+if (source.includes("pdfButton.disabled = exportMode === \"questions\"")
+  || source.includes("imageButton.disabled = exportMode === \"questions\"")
+  || source.includes("问题导出仅支持 Markdown")) {
+  fail("Question mode PDF and PNG buttons must stay clickable; do not disable them with the old Markdown-only restriction.");
 }
 
 [
   "question export uses every recorded directory question",
+  "question export PDF and image buttons stay enabled in question mode",
+  "question export imports readable official navigation entries",
   "question export includes every deeply captured question",
   "cached question export keeps every recorded question"
 ].forEach((scenario) => {

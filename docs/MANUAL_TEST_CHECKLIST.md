@@ -31,6 +31,7 @@
    - 长对话：建议至少 30 个用户问题，并能触发历史消息加载或虚拟化。
    - 新建未保存对话。
    - 包含代码块、行内公式和块级公式的对话。
+7. 将实际结果写入 `docs/STAGE0_ACCEPTANCE.json`，并运行 `npm run check:stage0-acceptance` 校验记录；未写入记录的结论不计为通过。
 
 ## P0 核心验收
 
@@ -208,15 +209,19 @@
 步骤：
 
 1. 打开导出标签。
-2. 测试全选、清空和选择部分消息。
-3. 执行复制 Markdown 和导出 Markdown。
+2. 在“问题”模式测试全选、清空和选择部分问题。
+3. 如果 ChatGPT 官方右侧问题导航可见，确认导出状态显示是否同步官方导航可读条目。
+4. 在“问题”模式分别执行复制 Markdown、导出 Markdown、导出 PDF 和导出图片。
+5. 切换到“对话”模式，测试全选、清空和选择部分消息。
+6. 在“对话”模式分别执行复制 Markdown、导出 Markdown、导出 PDF 和导出图片。
 
 预期结果：
 
-- 只包含当前选择的已加载消息。
-- 用户和助手角色顺序正确。
+- 问题模式包含当前选择的已记录问题；官方导航暴露可读问题标题时，这些条目会进入导出问题清单。
+- 问题模式的 PDF 和图片按钮可点击，导出内容为已选问题清单。
+- 对话模式只包含当前选择的已加载消息，用户和助手角色顺序正确。
 - 下载文件可打开，来源 URL 和导出时间存在。
-- 未加载历史消息不会被描述为已经导出。
+- 官方导航不暴露可读文本且历史消息未加载时，界面仍提示滚动或使用深度采集，不会把不可读横线伪造成正文。
 
 ## 增强能力验收
 
@@ -235,10 +240,11 @@
 
 ### M-22 公式复制
 
-- 测试 KaTeX 行内公式、块级公式和选中文本。
+- 使用 `npm run check:stage0-acceptance -- --print-formula-prompt` 生成 F-01 至 F-20 固定语料，并测试 KaTeX 行内公式、块级公式和选中文本。
 - 分别复制 Word UnicodeMath、WPS LaTeX、Markdown LaTeX 和原始 LaTeX。
 - 预期：来源可靠时格式正确；来源不可靠时有明确提示。
 - 在实际 Word 和 WPS 中粘贴验证，不能只检查剪贴板文本。
+- 将 Word/WPS 版本和每个公式的 `PASS` 或带证据 `FAIL` 写入 `docs/STAGE0_ACCEPTANCE.json`；详细流程见 `docs/STAGE0_ACCEPTANCE.md`。
 
 ### M-23 Popup 文件夹
 
@@ -267,3 +273,4 @@
 - 所有 `FAIL` 都已进入 `REGRESSION_LOG.md` 或明确列为阻塞项。
 - 重新运行 `npm run check` 和 `git diff --check` 后仍通过。
 - `docs/GOAL_STATUS.md` 已更新为实际测试结果和证据。
+- `npm run check:stage0-acceptance -- --require-complete` 只有在 M-01 至 M-12 全部 PASS、20 个公式的 Word/WPS 实际结果都已记录后才允许通过。

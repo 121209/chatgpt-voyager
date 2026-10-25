@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "candidate": {
+    "currentVersion": "0.4.0",
+    "targetVersion": "0.3.1",
+    "baseHead": "9f557419c6cd9f418e82dff03a148b7f20c66962",
+    "buildDate": "2026-07-19",
+    "loadSource": "dist/",
+    "chromeVersion": "150.0.7871.189",
+    "worktreeState": "dirty; candidate is built from the protected local worktree; all pre-existing changes and dist/ were preserved during S0-03"
+  },
+  "automatedEvidence": [
+    {
+      "id": "A-01",
+      "status": "PASS",
+      "evidence": "npm run check:browser-fixture: basic 10, virtualized 4, restore 3; all runtime-error checks PASS"
+    },
+    {
+      "id": "A-02",
+      "status": "PASS",
+      "evidence": "npm run check"
+    },
+    {
+      "id": "A-03",
+      "status": "PASS",
+      "evidence": "npm run build; dist rebuilt from current worktree"
+    },
+    {
+      "id": "A-04",
+      "status": "PASS",
+      "evidence": "git diff --check; only LF/CRLF conversion warnings"
+    }
+  ],
+  "manualRun": {
+    "executedAt": "2026-08-06",
+    "loadSource": "dist/",
+    "reloadEvidence": "用户在 chrome://extensions 确认从 C:\\Users\\sp202\\Documents\\New project\\dist 手动重新加载；随后自动化刷新真实已登录 ChatGPT 标签，Voyager 菜单成功重新注入。",
+    "chromeVersionEvidence": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe ProductVersion/FileVersion 150.0.7871.189。",
+      "latestContinuation": "2026-08-11：已按 S0-03 重连真实 Chrome。Chrome 控制接口的 URL 安全策略拒绝访问 chrome://extensions，不能在不绕过该策略的前提下从当前 dist/ 重新加载扩展；当前已登录 ChatGPT 标签为 https://chatgpt.com/ 空白新聊天，未发现可用于 M-03 至 M-12 的 30+ 用户问题对话。因此保留 M-03 至 M-12 的 BLOCKED 状态，不把旧的短对话观察误记为本轮长对话验收，也不据此诊断产品缺陷。",
+    "conversations": [
+      {
+        "description": "既有保存对话：投机采样与蒸馏区别",
+        "url": "https://chatgpt.com/c/6a7429ce-d858-83e8-96a8-5201c58aa8c5",
+        "size": "1 个用户问题、1 个助手回复；Voyager 显示已记录 1、目录 1、当前加载 1。"
+      },
+      {
+        "description": "S0-03 新建三问测试对话：测试问题 1",
+        "url": "https://chatgpt.com/c/6a7433cb-cf58-83e8-9879-fda9a1382476",
+        "size": "3 个用户问题、3 个助手回复；Voyager 显示已记录 3、目录 3、当前加载 3。"
+      }
+    ],
+    "exportResults": {
+      "questionMode": "问题模式列出 3 个测试问题；全选、清空、复制 Markdown、导出 Markdown、导出 PDF、导出图片控件均可见，PDF/图片按钮处于可点击状态。复制后浏览器控制剪贴板返回空文本；等待 Markdown 下载事件 12 秒超时，且本机 Downloads 未发现 chatgpt-* 文件，无法区分控制通道不可观测与扩展下载失败。PDF/PNG 未形成可打开产物证据。",
+      "conversationMode": "对话模式入口可见，但由于 Chrome 控制通道在 ChatGPT 页面反复重置，未完成全选/清空/部分选择及四种导出产物验证。",
+      "officialNavigation": "两个可用测试对话规模为 1 问和 3 问，ChatGPT 未显示可供首/中/尾验收的官方右侧横线；因此未声称同步官方导航文本。"
+    },
+    "controlLimitations": "真实页面多次出现 ChatGPT Statsig ab.chatgpt.com 初始化/上报 10 秒超时；页面脚本读取、复合截图和交互多次导致 Chrome 控制内核约 40 秒后重置。已改用可见 DOM、坐标和截图重试并取得基础、三问目录及迁移证据，但长对话、官方横线、暂停/恢复、深度采集、缓存切换和完整导出无法可靠完成。"
+  },
+  "chatgptCases": [
+    { "id": "M-01", "title": "扩展加载与基础冒烟", "status": "PASS", "evidence": "Chrome 150.0.7871.189；用户确认从 dist/ 重载后刷新真实已登录保存对话。页面、输入框和滚动条正常；右侧中部悬停只出现 1 个 Voyager 三横菜单，打开后只有 1 个目录面板；Voyager 自绘 rail/第二套横线未显示。自动化通道只记录到 ChatGPT Statsig 网络超时，未观察到持续 Voyager 未捕获错误。" },
+    { "id": "M-02", "title": "用户问题识别与去重", "status": "PASS", "evidence": "三问测试对话 https://chatgpt.com/c/6a7433cb-cf58-83e8-9879-fda9a1382476：问题为 alpha-voyager、beta-capture、gamma-export；页面有 3 个用户问题和 3 个助手回复，Voyager 显示已记录 3、目录 3、当前加载 3，目录仅列 3 个用户问题且顺序一致，助手回复未被识别为额外问题。" },
+    { "id": "M-03", "title": "官方右侧横线与 Voyager 菜单共存", "status": "BLOCKED", "evidence": "Voyager 菜单和目录/导出入口已验证可打开，且未显示第二套 Voyager marker；但可用真实对话仅 1 问和 3 问，ChatGPT 未显示可执行首/中/尾点击的官方右侧横线，无法完成官方跳转非干扰验收。2026-08-11 续测时，控制接口禁止访问 chrome://extensions 以重载当前 dist/，且当前登录标签为无历史的空白新聊天；仍无符合条件的 30+ 问题对话。" },
+    { "id": "M-04", "title": "目录点击定位", "status": "BLOCKED", "evidence": "三问目录已完整显示首/中/尾三个条目，但 Chrome 控制通道在打开目录后的复合交互中反复重置，未取得三个条目逐一点击后的落点和关闭状态证据。" },
+    { "id": "M-05", "title": "官方横线导航滚轮与插件非干扰", "status": "BLOCKED", "evidence": "页面未显示 Voyager 自绘横线；但没有 30+ 问题长对话，ChatGPT 也未在 1 问/3 问对话显示官方右侧横线，无法执行从首到尾再返回的官方横线滚轮与点击测试。" },
+    { "id": "M-06", "title": "目录完整性与状态", "status": "BLOCKED", "evidence": "短对话在底部打开目录时分别显示 1/1/1 和 3/3/3，当前已加载问题完整；缺少可触发历史加载或虚拟化的 30+ 问题长对话，无法比较顶部/中部/底部或验证暂不可定位的“需重新采集”状态。" },
+    { "id": "M-07", "title": "目录搜索与一句话概览", "status": "BLOCKED", "evidence": "三问目录每项显示“一句话概览”：alpha-voyager、beta-capture，第三项在生成期先显示“正在思考”；页面没有独立“总结”标签。未完成问题文本关键词、概览专属关键词及未加载回答三类搜索，因此不记 PASS。" },
+    { "id": "M-08", "title": "实时采集", "status": "BLOCKED", "evidence": "实时采集开启时连续新增 3 个用户问题，无需刷新即进入目录，最终为已记录 3、目录 3、当前加载 3，未出现重复；但尚未完成“暂停实时采集→新增问题→重新开启并补扫”的完整分支。" },
+    { "id": "M-09", "title": "深度采集与取消", "status": "BLOCKED", "evidence": "目录和导出页均显示深度采集入口；缺少长对话，且 Chrome 控制通道在复合交互时反复重置，未执行取消、完整采集和滚动位置恢复。" },
+    { "id": "M-10", "title": "缓存恢复与会话隔离", "status": "BLOCKED", "evidence": "成功从既有保存对话切换到另一保存对话，再创建独立测试对话；没有观察到可见污染，但未完成长对话采集后的刷新恢复与切回原对话全流程，不能据此判定 PASS。" },
+    { "id": "M-11", "title": "新建会话转持久会话", "status": "BLOCKED", "evidence": "从 https://chatgpt.com/ 新建未保存对话，首问提交后 URL 成功迁移到 https://chatgpt.com/c/6a7433cb-cf58-83e8-9879-fda9a1382476；随后在同一会话完成 3 问，目录为 3/3/3 且无重复。未在三问完成后刷新并复核缓存恢复，因此按清单保留 BLOCKED。" },
+    { "id": "M-12", "title": "Markdown、PDF 与 PNG 导出", "status": "BLOCKED", "evidence": "三问对话的问题/对话模式、全选/清空和复制 Markdown、导出 Markdown/PDF/图片控件均可见；问题模式 PDF/图片按钮可点击。复制后控制通道读取剪贴板为空；等待 Markdown 下载事件 12 秒超时，本机 Downloads 未发现 chatgpt-* 文件；对话模式和 PDF/PNG 产物未完成。现有证据无法区分浏览器控制不可观测与真实导出失败，故不误记 FAIL。2026-08-11 续测无法先完成当前 dist/ 的扩展重载和 30+ 问题对话准备，故未再次触发下载或打印。" }
+  ],
+  "formulaEnvironment": {
+    "operatingSystem": "Windows",
+    "wordVersion": "NOT RECORDED",
+    "wpsVersion": "NOT RECORDED",
+    "notes": "真实 Word/WPS 粘贴结果尚未执行；自动输出检查不能替代目标应用验收。"
+  },
+  "formulaCases": [
+    {
+      "id": "F-01",
+      "category": "superscript",
+      "latex": "x^2+y^2=z^2",
+      "expectedWordUnicodeMath": "x^2+y^2=z^2",
+      "expectedWpsLatex": "x^2+y^2=z^2",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-02",
+      "category": "subscript",
+      "latex": "a_{ij}=b_i+c_j",
+      "expectedWordUnicodeMath": "a_(ij)=b_i+c_j",
+      "expectedWpsLatex": "a_{ij}=b_i+c_j",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-03",
+      "category": "fraction",
+      "latex": "\\frac{a+b}{c-d}",
+      "expectedWordUnicodeMath": "(a+b)/(c-d)",
+      "expectedWpsLatex": "\\frac{a+b}{c-d}",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "复合分子和分母必须保持括号，不能退化为 a+b/c-d。"
+    },
+    {
+      "id": "F-04",
+      "category": "fraction",
+      "latex": "\\frac{1}{1+\\frac{x}{y}}",
+      "expectedWordUnicodeMath": "1/(1+x/y)",
+      "expectedWpsLatex": "\\frac{1}{1+\\frac{x}{y}}",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "嵌套分数。"
+    },
+    {
+      "id": "F-05",
+      "category": "radical",
+      "latex": "\\sqrt{x^2+y^2}",
+      "expectedWordUnicodeMath": "√(x^2+y^2)",
+      "expectedWpsLatex": "\\sqrt{x^2+y^2}",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-06",
+      "category": "radical",
+      "latex": "\\sqrt{\\frac{a+b}{c}}",
+      "expectedWordUnicodeMath": "√((a+b)/c)",
+      "expectedWpsLatex": "\\sqrt{\\frac{a+b}{c}}",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "根号内复合分数必须保持分组。"
+    },
+    {
+      "id": "F-07",
+      "category": "summation",
+      "latex": "\\sum_{i=1}^{n}i^2",
+      "expectedWordUnicodeMath": "∑_(i=1)^n i^2",
+      "expectedWpsLatex": "\\sum_{i=1}^{n}i^2",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-08",
+      "category": "summation",
+      "latex": "\\prod_{k=1}^{m}a_k",
+      "expectedWordUnicodeMath": "∏_(k=1)^m a_k",
+      "expectedWpsLatex": "\\prod_{k=1}^{m}a_k",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "乘积作为 n-ary 运算验收。"
+    },
+    {
+      "id": "F-09",
+      "category": "calculus",
+      "latex": "\\int_0^1 x^2\\,dx",
+      "expectedWordUnicodeMath": "\\int_0^1 x^2\\,dx",
+      "expectedWpsLatex": "\\int_0^1 x^2\\,dx",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "Word 输出仍包含线性格式命令，必须真实粘贴确认。"
+    },
+    {
+      "id": "F-10",
+      "category": "calculus",
+      "latex": "\\lim_{x\\to 0}\\frac{\\sin x}{x}=1",
+      "expectedWordUnicodeMath": "\\lim_x\\to 0(sin x)/x=1",
+      "expectedWpsLatex": "\\lim_{x\\to 0}\\frac{\\sin x}{x}=1",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "极限下标仍需真实 Word/WPS 解析确认。"
+    },
+    {
+      "id": "F-11",
+      "category": "greek",
+      "latex": "\\alpha+\\beta=\\gamma",
+      "expectedWordUnicodeMath": "α+β=γ",
+      "expectedWpsLatex": "\\alpha+\\beta=\\gamma",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-12",
+      "category": "greek",
+      "latex": "x\\leq y,\\quad y\\neq z",
+      "expectedWordUnicodeMath": "x≤ y,\\quad y≠ z",
+      "expectedWpsLatex": "x\\leq y, y\\neq z",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "关系符与间距命令。"
+    },
+    {
+      "id": "F-13",
+      "category": "norm",
+      "latex": "\\left\\|x-\\mu\\right\\|^2",
+      "expectedWordUnicodeMath": "‖x-μ‖^2",
+      "expectedWpsLatex": "\\|x-\\mu\\|^2",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-14",
+      "category": "matrix",
+      "latex": "A=\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}",
+      "expectedWordUnicodeMath": "A=\\beginbmatrixa&b\\\\c&d\\endbmatrix",
+      "expectedWpsLatex": "A=\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "Word UnicodeMath 尚未实现 LaTeX bmatrix 环境转换；预期可能记录为兼容限制。"
+    },
+    {
+      "id": "F-15",
+      "category": "cases",
+      "latex": "f(x)=\\begin{cases}x^2,&x\\geq0\\\\-x,&x<0\\end{cases}",
+      "expectedWordUnicodeMath": "f(x)=\\begincasesx^2,&x≥0\\\\-x,&x<0\\endcases",
+      "expectedWpsLatex": "f(x)=\\begin{cases}x^2,&x\\geq0\\\\-x,&x<0\\end{cases}",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "Word UnicodeMath 尚未实现 LaTeX cases 环境转换；预期可能记录为兼容限制。"
+    },
+    {
+      "id": "F-16",
+      "category": "calculus",
+      "latex": "\\frac{d}{dx}f(x)=f'(x)",
+      "expectedWordUnicodeMath": "d/dxf(x)=f'(x)",
+      "expectedWpsLatex": "\\frac{d}{dx}f(x)=f'(x)",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-17",
+      "category": "calculus",
+      "latex": "\\frac{\\partial u}{\\partial t}=\\nabla^2u",
+      "expectedWordUnicodeMath": "(∂ u)/(∂ t)=∇^2u",
+      "expectedWpsLatex": "\\frac{\\partial u}{\\partial t}=\\nabla^2u",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": ""
+    },
+    {
+      "id": "F-18",
+      "category": "calculus",
+      "latex": "\\theta=\\cos^{-1}\\left(\\frac{a}{b}\\right)",
+      "expectedWordUnicodeMath": "θ=arccos(a/b)",
+      "expectedWpsLatex": "\\theta=\\cos^{-1}(\\frac{a}{b})",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "反三角函数归一化。"
+    },
+    {
+      "id": "F-19",
+      "category": "greek",
+      "latex": "\\hat{y}_i=\\bar{x}+\\epsilon_i",
+      "expectedWordUnicodeMath": "ŷ_i=x̅+ε_i",
+      "expectedWpsLatex": "\\hat{y}_i=\\bar{x}+\\epsilon_i",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "重音、上划线和希腊字母。"
+    },
+    {
+      "id": "F-20",
+      "category": "text-function",
+      "latex": "\\mathrm{head}_i=\\mathrm{softmax}(\\frac{QW_i^Q(KW_i^K)^T}{\\sqrt{d_k}})VW_i^V",
+      "expectedWordUnicodeMath": "head_i=softmax((QW_i^Q(KW_i^K)^T)/(√(d_k))) VW_i^V",
+      "expectedWpsLatex": "head_i=softmax(\\frac{QW_i^Q(KW_i^K)^T}{\\sqrt{d_k}})VW_i^V",
+      "wordStatus": "NOT RUN",
+      "wordEvidence": "",
+      "wpsStatus": "NOT RUN",
+      "wpsEvidence": "",
+      "compatibilityNote": "Word/WPS 均不得重新出现破损的文本样式命令。"
+    }
+  ]
+}

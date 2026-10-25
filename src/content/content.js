@@ -1,10 +1,17 @@
 (function () {
   const APP_ID = "cgpt-question-rail";
   const USER_MESSAGE_SELECTOR = '[data-message-author-role="user"]';
+  const SEARCH_UNIT_SELECTOR = '[data-chatgpt-search-unit-key], [data-content-search-unit-key]';
+  const USER_ROLE_SELECTOR = '[data-message-author-role="user"], [data-turn="user"], [data-testid*="user-message" i], .user-message-bubble, [data-user-message-bubble="true"], [data-chatgpt-search-unit-key$=":user"], [data-content-search-unit-key$=":user"]';
+  const ASSISTANT_ROLE_SELECTOR = '[data-message-author-role="assistant"], [data-turn="assistant"], [data-testid*="assistant-message" i], [data-chatgpt-search-unit-key$=":assistant"], [data-content-search-unit-key$=":assistant"]';
   const STRICT_CONVERSATION_TURN_SELECTOR = '[data-testid^="conversation-turn-"], [data-testid*="conversation-turn"]';
-  const CONVERSATION_TURN_SELECTOR = `${STRICT_CONVERSATION_TURN_SELECTOR}, article`;
+  const CONVERSATION_TURN_SELECTOR = `${STRICT_CONVERSATION_TURN_SELECTOR}, ${SEARCH_UNIT_SELECTOR}, article`;
   const USER_MESSAGE_CANDIDATE_SELECTOR = [
     USER_MESSAGE_SELECTOR,
+    '[data-turn="user"]',
+    '[data-user-message-bubble="true"]',
+    '[data-chatgpt-search-unit-key$=":user"]',
+    '[data-content-search-unit-key$=":user"]',
     '[data-testid*="user-message" i]',
     '[class*="user-message" i]',
     '[aria-label*="用户消息"]',
@@ -65,6 +72,11 @@
   let exportQuestionSelectionReady = false;
   let selectedQuestionKeys = new Set();
   let knownQuestionExportKeys = new Set();
+  let lastOfficialNavigationSync = {
+    candidateCount: 0,
+    readableCount: 0,
+    importedCount: 0
+  };
   let hideDirectoryButtonTimer = null;
   let directoryResizeState = null;
   let currentConversationId = "";
@@ -119,7 +131,17 @@
   }
 
   function getConversationTurn(element) {
-    return element.closest(CONVERSATION_TURN_SELECTOR) || element;
+    return element.closest('[data-chatgpt-search-unit-key]')
+      || element.closest(CONVERSATION_TURN_SELECTOR) || element;
+  }
+
+  function getSemanticMessageKey(element) {
+    const unit = element.closest('[data-chatgpt-search-unit-key]') || element.closest(SEARCH_UNIT_SELECTOR);
+    if (!unit) return "";
+    const messageId = (unit.getAttribute('data-chatgpt-search-message-ids') || '').trim().split(/\s+/)[0];
+    if (messageId) return `message:${messageId}`;
+    const key = unit.getAttribute('data-chatgpt-search-unit-key') || unit.getAttribute('data-content-search-unit-key');
+    return key ? `search-unit:${key}` : "";
   }
 
   function isStrictConversationTurn(element) {
@@ -137,18 +159,12 @@
 
   function hasExplicitUserMarker(element) {
     if (!(element instanceof Element)) return false;
-    return element.matches?.(USER_MESSAGE_SELECTOR)
-      || /user-message/i.test(element.getAttribute("data-testid") || "")
-      || Boolean(element.querySelector(USER_MESSAGE_SELECTOR))
-      || Boolean(element.querySelector('[data-testid*="user-message" i]'));
+    return element.matches(USER_ROLE_SELECTOR) || Boolean(element.querySelector(USER_ROLE_SELECTOR));
   }
 
   function hasExplicitAssistantMarker(element) {
     if (!(element instanceof Element)) return false;
-    return element.matches?.('[data-message-author-role="assistant"]')
-      || /assistant-message/i.test(element.getAttribute("data-testid") || "")
-      || Boolean(element.querySelector('[data-message-author-role="assistant"]'))
-      || Boolean(element.querySelector('[data-testid*="assistant-message" i]'));
+    return element.matches(ASSISTANT_ROLE_SELECTOR) || Boolean(element.querySelector(ASSISTANT_ROLE_SELECTOR));
   }
 
   function looksLikeGeneratedContent(text) {
@@ -163,7 +179,7 @@
       || /^(?:thought|thinking|reasoning)(?:\s+for)?\s+\d+/i.test(normalized)
       || /^post\s+see new posts\s+conversation\b/i.test(normalized)
       || /^see new posts\b/i.test(normalized)
-      || /(?:^|\s)(?:chatgpt|regenerate|重新生成|read aloud|朗读|copy code|复制代码)(?:\s|$)/i.test(normalized)
+      || /^(?:chatgpt|regenerate|重新生成|read aloud|朗读|copy code|复制代码)$/i.test(normalized)
       || (/\b(?:reply|repost|quote|like|bookmark|share|translate post|view on x|show more|show less)\b/i.test(normalized)
         && /\b(?:post|conversation|followers?|following|@[\w-]+)\b/i.test(normalized))
       || (/\bconversation\b/.test(lower) && /@\w/.test(lower) && /\bpost\b/.test(lower));
@@ -171,7 +187,10 @@
 
   function looksLikeAssistantTurn(turn) {
     if (!(turn instanceof Element)) return false;
+    if (hasExplicitUserMarker(turn)) return false;
     if (hasExplicitAssistantMarker(turn)) return true;
+    if (Array.from(turn.querySelectorAll('.markdown, .prose'))
+      .some((body) => !isInsideComposerOrCqr(body) && !shouldSkipPdfElement(body))) return true;
 
     const text = (turn.innerText || turn.textContent || "").toLowerCase();
     return looksLikeGeneratedContent(text) && !hasExplicitUserMarker(turn);
@@ -181,7 +200,7 @@
     if (!(element instanceof Element)) return false;
     if (isInsideComposerOrCqr(element)) return false;
     if (!isElementVisible(element)) return false;
-    if (element.closest('[data-message-author-role="assistant"], [data-testid*="assistant-message" i]')) return false;
+    if (element.closest(ASSISTANT_ROLE_SELECTOR)) return false;
 
     const text = getMessageText(element);
     if (!text || text.length < 1) return false;
@@ -189,6 +208,7 @@
 
     const turn = getConversationTurn(element);
     if (looksLikeAssistantTurn(turn)) return false;
+    if (element.matches(USER_ROLE_SELECTOR)) return true;
 
     const className = String(element.className || "");
     const testId = element.getAttribute("data-testid") || "";
@@ -207,7 +227,7 @@
 
     const candidates = Array.from(turn.querySelectorAll("div, p"))
       .filter((element) => !isInsideComposerOrCqr(element))
-      .filter((element) => !element.closest('[data-message-author-role="assistant"], [data-testid*="assistant-message" i]'))
+      .filter((element) => !element.closest(ASSISTANT_ROLE_SELECTOR))
       .filter(isElementVisible)
       .map((element) => ({
         element,
@@ -240,7 +260,9 @@
 
   function resolveUserMessageElementFromTurn(turn) {
     if (!(turn instanceof Element)) return null;
-    return turn.querySelector(USER_MESSAGE_SELECTOR)
+    return turn.querySelector('[data-user-message-bubble="true"]')
+      || (turn.matches('[data-user-message-bubble="true"]') ? turn : null)
+      || turn.querySelector(USER_MESSAGE_SELECTOR)
       || turn.querySelector('[data-testid*="user-message" i]')
       || turn.querySelector('[class*="user-message" i]')
       || Array.from(turn.querySelectorAll([
@@ -249,7 +271,9 @@
         '[aria-label*="message from you" i]',
         '[class*="user"]'
       ].join(","))).find(looksLikeUserMessageElement)
-      || findRightAlignedUserBubble(turn);
+      || (turn.matches(USER_ROLE_SELECTOR)
+        ? turn.querySelector('.user-message-bubble, .whitespace-pre-wrap') || turn
+        : findRightAlignedUserBubble(turn));
   }
 
   function filterNestedUserMessages(elements) {
@@ -284,6 +308,8 @@
   }
 
   function getUserMessageDedupeKey(element) {
+    const semanticKey = getSemanticMessageKey(element);
+    if (semanticKey) return semanticKey;
     const strictTurn = element.closest(STRICT_CONVERSATION_TURN_SELECTOR);
     if (strictTurn) {
       const testId = strictTurn.getAttribute("data-testid") || "";
@@ -325,7 +351,8 @@
     const directMatches = Array.from(document.querySelectorAll(USER_MESSAGE_CANDIDATE_SELECTOR))
       .filter(looksLikeUserMessageElement);
 
-    return dedupeUserMessages([...turnMatches, ...directMatches])
+    return dedupeUserMessages([...turnMatches, ...directMatches.map((node) =>
+      node.matches(`[data-turn="user"], ${SEARCH_UNIT_SELECTOR}`) ? resolveUserMessageElementFromTurn(node) : node)])
       .filter((node) => !node.closest(`#${APP_ID}`))
       .filter((node) => !isInsideComposerOrCqr(node))
       .filter((node) => {
@@ -456,6 +483,14 @@
       const byElementKey = items.find((question) => question.elementKey === targetQuestion.elementKey
         && (!targetHasTurn || !Number.isFinite(question.turnNumber)));
       if (byElementKey) return byElementKey;
+    }
+
+    // Migrate a unique legacy positional cache entry when a semantic message ID appears.
+    if (/^(?:message:|search-unit:)/.test(targetQuestion.elementKey || '')) {
+      const legacyMatches = items.filter((question) => !Number.isFinite(question.turnNumber)
+        && !/^(?:message:|search-unit:)/.test(question.elementKey || '')
+        && normalizeQuestionText(question.text) === normalizeQuestionText(targetQuestion.text));
+      if (legacyMatches.length === 1) return legacyMatches[0];
     }
 
     const text = normalizeQuestionText(targetQuestion.text);
@@ -631,6 +666,8 @@
       anchorScrollRatio: question.anchorScrollRatio,
       anchorViewportOffset: question.anchorViewportOffset,
       anchorVersion: question.anchorVersion || null,
+      source: question.source || null,
+      officialNavIndex: Number.isFinite(question.officialNavIndex) ? question.officialNavIndex : null,
       firstSeenAt: question.firstSeenAt,
       lastSeenAt: question.lastSeenAt,
       loaded: Boolean(question.loaded)
@@ -729,6 +766,8 @@
       anchorScrollRatio: Number.isFinite(question.anchorScrollRatio) ? question.anchorScrollRatio : null,
       anchorViewportOffset: Number.isFinite(question.anchorViewportOffset) ? question.anchorViewportOffset : null,
       anchorVersion: question.anchorVersion || null,
+      source: question.source || null,
+      officialNavIndex: Number.isFinite(question.officialNavIndex) ? question.officialNavIndex : null,
       firstSeenAt: question.firstSeenAt || Date.now(),
       lastSeenAt: question.lastSeenAt || Date.now(),
       loaded: false
@@ -1206,7 +1245,7 @@
           hash,
           exactHash,
           element,
-          elementKey: `${hash}:${index}`,
+          elementKey: getSemanticMessageKey(node) || `${hash}:${index}`,
           turnNumber,
           ...anchor
         };
@@ -1360,6 +1399,7 @@
   function getQuestionStatusText(question) {
     if (question.loaded) return "";
     if (hasReliableQuestionAnchor(question)) return "已记录位置";
+    if (question.source === "official-navigation") return "官方导航记录";
     return "需重新采集";
   }
 
@@ -1518,19 +1558,365 @@
   }
 
   function getLoadedMessages() {
-    return Array.from(document.querySelectorAll("[data-message-author-role]"))
-      .filter((node) => !node.closest(`#${APP_ID}`))
-      .map((node, index) => ({
-        role: node.getAttribute("data-message-author-role") || "message",
-        text: getMessageText(node),
-        node,
-        index,
-        key: `${node.getAttribute("data-message-author-role") || "message"}-${index}`
-      }))
+    // Reuse the exact user nodes indexed by the directory, including role-free bubbles.
+    const userNodes = getUserMessages();
+    const assistantNodes = Array.from(document.querySelectorAll(ASSISTANT_ROLE_SELECTOR))
+      .filter((node) => !isInsideComposerOrCqr(node))
+      .filter((node) => !userNodes.some((user) => user === node || user.contains(node)))
+      .filter((node) => !shouldSkipPdfElement(node));
+    const assistantSources = assistantNodes.filter((node) =>
+      !assistantNodes.some((other) => other !== node && node.contains(other)));
+
+    // Restrict role-free answer fallbacks to conversation turns, never global Markdown.
+    Array.from(document.querySelectorAll(CONVERSATION_TURN_SELECTOR))
+      .filter((turn) => !isInsideComposerOrCqr(turn))
+      .forEach((turn) => {
+        Array.from(turn.querySelectorAll('.markdown, .prose'))
+          .filter((body) => !body.closest(USER_ROLE_SELECTOR) && !isInsideComposerOrCqr(body))
+          .filter((body) => !userNodes.some((user) => user === body || user.contains(body)))
+          .filter((body) => !shouldSkipPdfElement(body))
+          .forEach((body) => {
+            if (!assistantSources.some((source) => source === body || source.contains(body) || body.contains(source))) {
+              assistantSources.push(body);
+            }
+          });
+      });
+
+    const messageOccurrences = new Map();
+    return [
+      ...userNodes.map((source) => ({ role: "user", source })),
+      ...assistantSources.map((source) => ({ role: "assistant", source }))
+    ].sort((a, b) => a.source === b.source ? 0
+      : a.source.compareDocumentPosition(b.source) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+      .map(({ role, source }, index) => {
+        let node = source;
+        if (role === "assistant") {
+          node = source.cloneNode(true);
+          Array.from(node.querySelectorAll('*')).reverse().forEach((element) => {
+            if (element.matches('.sr-only, [hidden]') || shouldSkipPdfElement(element)) element.remove();
+          });
+        }
+        const turnNumber = getConversationTurnNumber(source);
+        const identity = getSemanticMessageKey(source) || (Number.isFinite(turnNumber) ? `turn:${turnNumber}`
+          : source.getAttribute('data-message-id') || source.id || `index:${index}`);
+        const keyBase = `${role}-${identity}`;
+        const occurrence = messageOccurrences.get(keyBase) || 0;
+        messageOccurrences.set(keyBase, occurrence + 1);
+        return { role, text: getMessageText(node), node, source, turnNumber, index, key: `${keyBase}-${occurrence}` };
+      })
       .filter((message) => message.text.length > 0);
   }
 
+  function getElementLabelValues(element, { includeTestId = false } = {}) {
+    if (!(element instanceof Element)) return [];
+
+    const attributes = [
+      "aria-label",
+      "title",
+      "data-title",
+      "data-label",
+      "data-text",
+      "data-question",
+      "data-message"
+    ];
+    if (includeTestId) attributes.push("data-testid", "id", "class");
+
+    const values = attributes
+      .map((attribute) => element.getAttribute(attribute))
+      .filter(Boolean);
+
+    const visibleText = getMessageText(element);
+    if (visibleText && visibleText.length <= 500) values.push(visibleText);
+
+    return Array.from(new Set(values.map(normalizeQuestionText).filter(Boolean)));
+  }
+
+  function getOfficialNavigationContextText(element) {
+    const labels = [];
+    let current = element instanceof Element ? element : null;
+    let depth = 0;
+
+    while (current && current !== document.documentElement && depth < 5) {
+      labels.push(...getElementLabelValues(current, { includeTestId: true }));
+      current = current.parentElement;
+      depth += 1;
+    }
+
+    return labels.join(" ");
+  }
+
+  function hasFixedOrStickyAncestor(element) {
+    let current = element instanceof Element ? element : null;
+    let depth = 0;
+
+    while (current && current !== document.documentElement && depth < 5) {
+      const position = window.getComputedStyle(current).position;
+      if (position === "fixed" || position === "sticky") return true;
+      current = current.parentElement;
+      depth += 1;
+    }
+
+    return false;
+  }
+
+  function normalizeOfficialQuestionNavigationText(label) {
+    const original = normalizeQuestionText(label);
+    if (!original) return "";
+
+    let text = original
+      .replace(/\b(?:current|selected|active)\b/gi, "")
+      .replace(/(?:当前|已选中|选中|活动项)/g, "")
+      .replace(/^\s*\d+\s*(?:\/|／)\s*\d+\s*/g, "")
+      .trim();
+
+    const prefixPatterns = [
+      /^(?:go to|jump to|open|navigate to|scroll to|show)\s+(?:the\s+)?(?:user\s+)?(?:question|prompt|message)(?:\s+\d+(?:\s+of\s+\d+)?)?\s*[:：\-–—]\s*/i,
+      /^(?:question|prompt|user message|message)\s*\d*(?:\s+of\s+\d+)?\s*[:：\-–—]\s*/i,
+      /^(?:跳转到|打开|定位到|前往|查看)?\s*(?:第\s*)?\d+\s*(?:个|条)?\s*(?:问题|提问|用户消息)\s*[:：\-–—]?\s*/i,
+      /^(?:问题|提问|用户消息)\s*\d+(?:\s*(?:\/|／)\s*\d+)?\s*[:：\-–—]?\s*/i
+    ];
+
+    prefixPatterns.forEach((pattern) => {
+      text = text.replace(pattern, "");
+    });
+
+    text = text
+      .replace(/^(?:go to|jump to|open|navigate to|scroll to|show)\s+/i, "")
+      .replace(/^(?:跳转到|打开|定位到|前往|查看)\s*/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!text || text === original && /^(?:question|prompt|message|问题|提问|用户消息)\s*\d*$/i.test(text)) return "";
+    if (/^(?:question|prompt|message|问题|提问|用户消息)\s*\d*(?:\s*(?:\/|／)\s*\d+)?$/i.test(text)) return "";
+    if (/^(?:conversation\s+)?(?:question\s+)?(?:navigation|navigator|map|outline)$/i.test(text)) return "";
+    if (/^(?:问题|对话)?(?:导航|目录|大纲)$/i.test(text)) return "";
+    if (/^(?:navigation|navigator|conversation map|目录|导出|更多|跳转|定位)$/i.test(text)) return "";
+    if (text.length > 3000) return "";
+    if (isIgnoredQuestionText(text)) return "";
+    if (looksLikeGeneratedContent(text)) return "";
+
+    return text;
+  }
+
+  function extractOfficialQuestionNavigationText(element) {
+    const labels = getElementLabelValues(element);
+
+    for (const label of labels) {
+      const text = normalizeOfficialQuestionNavigationText(label);
+      if (text) return text;
+    }
+
+    return "";
+  }
+
+  function isPotentialOfficialQuestionNavigationElement(element) {
+    if (!(element instanceof Element)) return false;
+    if (element.closest(`#${APP_ID}, .cqr-directory, .cqr-menu-button, .cqr-menu-trigger`)) return false;
+    if (isInsideComposerOrCqr(element)) return false;
+    if (element.closest(CONVERSATION_TURN_SELECTOR)) return false;
+    if (!isElementVisible(element)) return false;
+
+    const rect = element.getBoundingClientRect();
+    if (rect.width < 4 || rect.height < 4) return false;
+
+    const context = getOfficialNavigationContextText(element);
+    const hasNavigationMarker = /(?:question|prompt|user message|问题|提问|用户消息|conversation[^a-z0-9]*(?:nav|map|outline)|thread[^a-z0-9]*(?:nav|map|outline)|navigation|navigator)/i.test(context);
+    const inRightNavigationRegion = rect.left >= window.innerWidth * 0.55
+      || rect.right >= window.innerWidth - Math.max(160, window.innerWidth * 0.16);
+    const fixedOrSticky = hasFixedOrStickyAncestor(element);
+
+    return hasNavigationMarker && (inRightNavigationRegion || fixedOrSticky);
+  }
+
+  function getOfficialQuestionNavigationCandidateElements() {
+    const selector = [
+      "button",
+      "a",
+      '[role="button"]',
+      '[role="link"]',
+      "[aria-label]",
+      "[title]",
+      '[data-testid*="question" i]',
+      '[data-testid*="prompt" i]',
+      '[data-testid*="conversation" i]',
+      '[data-testid*="nav" i]'
+    ].join(",");
+
+    return uniqueElements(Array.from(document.querySelectorAll(selector)))
+      .filter(isPotentialOfficialQuestionNavigationElement);
+  }
+
+  function getOfficialQuestionNavigationEntries() {
+    const candidates = getOfficialQuestionNavigationCandidateElements();
+    const entries = [];
+    const seenKeys = new Set();
+
+    candidates.forEach((element, index) => {
+      const text = extractOfficialQuestionNavigationText(element);
+      if (!text) return;
+
+      const exactHash = hashFullQuestionText(text);
+      const occurrenceKey = `${exactHash}:${entries.filter((entry) => entry.exactHash === exactHash).length}`;
+      if (seenKeys.has(occurrenceKey)) return;
+      seenKeys.add(occurrenceKey);
+
+      entries.push({
+        conversationId: currentConversationId || getConversationIdFromUrl(),
+        text,
+        shortText: shortQuestionText(text),
+        hash: hashQuestionText(text),
+        exactHash,
+        element: null,
+        elementKey: `official-nav:${index}:${exactHash}`,
+        loaded: false,
+        source: "official-navigation",
+        officialNavIndex: entries.length + 1
+      });
+    });
+
+    lastOfficialNavigationSync = {
+      ...lastOfficialNavigationSync,
+      candidateCount: candidates.length,
+      readableCount: entries.length
+    };
+
+    return entries;
+  }
+
+  function mergeOfficialNavigationQuestions(entries) {
+    if (!entries.length) return { changed: false, importedCount: 0 };
+
+    const now = Date.now();
+    const items = questions
+      .filter((question) => questionBelongsToConversation(question, currentConversationId, { allowUnknown: false }))
+      .filter((question) => !isIgnoredQuestionText(question.text))
+      .map((question, index) => ({
+        ...question,
+        index: index + 1
+      }));
+    const beforeSignature = items
+      .map((question) => `${question.id}:${question.index}:${question.text}:${question.elementKey || ""}:${question.source || ""}:${question.officialNavIndex || ""}`)
+      .join("|");
+    const usedItems = new Set();
+    let importedCount = 0;
+    let lastPlacedIndex = -1;
+
+    function findExistingForEntry(entry) {
+      const byElementKey = items.find((question) => !usedItems.has(question) && question.elementKey === entry.elementKey);
+      if (byElementKey) return byElementKey;
+
+      const sameText = items
+        .filter((question) => !usedItems.has(question))
+        .filter((question) => (question.exactHash || hashFullQuestionText(question.text)) === entry.exactHash)
+        .sort((a, b) => a.index - b.index);
+      if (sameText.length > 0) return sameText[0];
+
+      return findQuestionByStableIdentity(items.filter((question) => !usedItems.has(question)), entry);
+    }
+
+    entries.forEach((entry, entryIndex) => {
+      const existing = findExistingForEntry(entry);
+
+      if (existing) {
+        usedItems.add(existing);
+        existing.conversationId = currentConversationId;
+        existing.text = entry.text;
+        existing.shortText = shortQuestionText(entry.text);
+        existing.hash = entry.hash;
+        existing.exactHash = entry.exactHash;
+        existing.source = existing.source || entry.source;
+        existing.officialNavIndex = entryIndex + 1;
+        existing.lastSeenAt = now;
+
+        const currentIndex = items.indexOf(existing);
+        if (lastPlacedIndex >= 0 && currentIndex >= 0 && currentIndex < lastPlacedIndex) {
+          items.splice(currentIndex, 1);
+          lastPlacedIndex -= 1;
+          items.splice(lastPlacedIndex + 1, 0, existing);
+          lastPlacedIndex += 1;
+        } else {
+          lastPlacedIndex = currentIndex;
+        }
+        return;
+      }
+
+      const next = {
+        id: `${currentConversationId}:${entry.hash}:official-${entryIndex + 1}`,
+        conversationId: currentConversationId,
+        index: 0,
+        text: entry.text,
+        shortText: shortQuestionText(entry.text),
+        hash: entry.hash,
+        exactHash: entry.exactHash,
+        element: null,
+        elementKey: entry.elementKey,
+        turnNumber: null,
+        anchorTop: null,
+        anchorScrollTop: null,
+        anchorTargetScrollTop: null,
+        anchorScrollHeight: null,
+        anchorClientHeight: null,
+        anchorRatio: null,
+        anchorTargetRatio: null,
+        anchorScrollRatio: null,
+        anchorViewportOffset: null,
+        anchorVersion: null,
+        firstSeenAt: now,
+        lastSeenAt: now,
+        loaded: false,
+        source: entry.source,
+        officialNavIndex: entryIndex + 1
+      };
+      const insertIndex = lastPlacedIndex >= 0 ? lastPlacedIndex + 1 : 0;
+      items.splice(insertIndex, 0, next);
+      lastPlacedIndex = insertIndex;
+      importedCount += 1;
+    });
+
+    questions = dedupeQuestionsByTurnNumber(reindexQuestions(items));
+    const afterSignature = questions
+      .map((question) => `${question.id}:${question.index}:${question.text}:${question.elementKey || ""}:${question.source || ""}:${question.officialNavIndex || ""}`)
+      .join("|");
+
+    return {
+      changed: beforeSignature !== afterSignature,
+      importedCount
+    };
+  }
+
+  function syncOfficialNavigationQuestions({ render = false, persist = true } = {}) {
+    const routeConversationId = getConversationIdFromUrl();
+    if (currentConversationId && routeConversationId !== currentConversationId) return { changed: false, importedCount: 0 };
+    if (!currentConversationId) currentConversationId = routeConversationId;
+
+    const entries = getOfficialQuestionNavigationEntries();
+    if (entries.length === 0) {
+      lastOfficialNavigationSync = {
+        ...lastOfficialNavigationSync,
+        importedCount: 0
+      };
+      return { changed: false, importedCount: 0 };
+    }
+
+    const result = mergeOfficialNavigationQuestions(entries);
+    lastOfficialNavigationSync = {
+      ...lastOfficialNavigationSync,
+      importedCount: result.importedCount
+    };
+
+    if (result.changed && persist) {
+      writeQuestionCache(currentConversationId);
+    }
+
+    if (result.changed && render) {
+      renderQuestionUi();
+    }
+
+    return result;
+  }
+
   function getExportQuestions() {
+    syncOfficialNavigationQuestions({ render: false, persist: true });
     return getDirectoryQuestions();
   }
 
@@ -1741,6 +2127,9 @@
 
   function questionMatchesMessage(question, message) {
     if (!question || !message) return false;
+    if (Number.isFinite(question.turnNumber) && Number.isFinite(message.turnNumber)) {
+      return question.turnNumber === message.turnNumber;
+    }
 
     const questionText = normalizeQuestionText(question.text);
     const messageText = normalizeQuestionText(message.text);
@@ -1757,7 +2146,17 @@
   }
 
   function findAnswerPairForQuestion(question, pairs) {
-    return pairs.find((pair) => questionMatchesMessage(question, pair.userMessage)) || null;
+    if (Number.isFinite(question?.turnNumber)) {
+      const byTurn = pairs.find((pair) => pair.userMessage.turnNumber === question.turnNumber);
+      if (byTurn) return byTurn;
+    }
+    if (question?.element instanceof Element) {
+      const byElement = pairs.filter((pair) => pair.userMessage.source instanceof Element
+        && question.element.contains(pair.userMessage.source));
+      if (byElement.length === 1) return byElement[0];
+    }
+    const matches = pairs.filter((pair) => questionMatchesMessage(question, pair.userMessage));
+    return matches.length === 1 ? matches[0] : null;
   }
 
   function getAnswerOverviewForQuestion(question, pairs) {
@@ -1771,7 +2170,13 @@
   function roleHeading(role) {
     if (role === "user") return "User";
     if (role === "assistant") return "Assistant";
+    if (role === "question") return "Question";
     return role.charAt(0).toUpperCase() + role.slice(1);
+  }
+
+  function selectedQuestionStatusLine(question) {
+    const status = getQuestionStatusText(question);
+    return status ? `状态：${status}` : "";
   }
 
   function buildQuestionMarkdownExport(exportQuestions = getSelectedExportQuestions()) {
@@ -1981,6 +2386,18 @@
     })).filter((message) => message.segments.length > 0);
   }
 
+  function getSelectedRichQuestions() {
+    return getSelectedExportQuestions().map((question, index) => ({
+      role: "question",
+      index,
+      meta: selectedQuestionStatusLine(question),
+      segments: [{
+        type: "text",
+        content: question.text
+      }]
+    })).filter((message) => message.segments.some((segment) => String(segment.content || "").trim()));
+  }
+
   function stripMathDelimitersForPdf(latex) {
     return window.CQRFormulaClipboard?.stripMathDelimiters?.(latex)
       || String(latex || "").trim()
@@ -2027,16 +2444,20 @@
     }).join("");
   }
 
-  function generatePrintHtml(messages, sourceUrl) {
+  function generatePrintHtml(messages, sourceUrl, options = {}) {
     const exportedAt = new Date().toLocaleString();
+    const title = options.title || "ChatGPT Conversation Export";
+    const countLabel = options.countLabel || "Messages";
     const counters = {};
     const messageHtml = messages.map((message) => {
       const heading = roleHeading(message.role);
       counters[heading] = (counters[heading] || 0) + 1;
+      const meta = message.meta ? `<div class="message-meta">${escapeHtml(message.meta)}</div>` : "";
 
       return `
         <section class="message">
           <div class="role">${escapeHtml(`${heading} ${counters[heading]}`)}</div>
+          ${meta}
           <div class="content">${renderRichSegmentsToHtml(message.segments)}</div>
         </section>
       `;
@@ -2046,7 +2467,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>ChatGPT Conversation Export</title>
+  <title>${escapeHtml(title)}</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -2107,6 +2528,13 @@
       font-size: 15px;
       font-weight: 700;
       margin-bottom: 8px;
+    }
+
+    .message-meta {
+      margin: -2px 0 8px;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.5;
     }
 
     .content {
@@ -2220,11 +2648,11 @@
     <div class="toolbar">
       <button id="cqr-print-button" class="print-button" type="button">打印 / 保存为 PDF</button>
     </div>
-    <h1>ChatGPT Conversation Export</h1>
+    <h1>${escapeHtml(title)}</h1>
     <div class="meta">
       <div>Exported at: ${escapeHtml(exportedAt)}</div>
       <div>Source: ${escapeHtml(sourceUrl)}</div>
-      <div>Messages: ${messages.length}</div>
+      <div>${escapeHtml(countLabel)}: ${messages.length}</div>
     </div>
     ${messageHtml}
   </div>
@@ -2233,7 +2661,7 @@
 </html>`;
   }
 
-  function openPdfPreview(messages) {
+  function openPdfPreview(messages, options = {}) {
     const preview = window.open("", "_blank");
     if (!preview) {
       showToast("无法打开 PDF 预览页", true);
@@ -2241,7 +2669,7 @@
     }
 
     preview.document.open();
-    preview.document.write(generatePrintHtml(messages, location.href));
+    preview.document.write(generatePrintHtml(messages, location.href, options));
     preview.document.close();
     preview.focus();
 
@@ -2262,7 +2690,16 @@
 
   function handleExportPdf() {
     if (exportMode === "questions") {
-      showToast("问题导出仅支持 Markdown；切换到对话可导出 PDF。", true);
+      const questionsForPdf = getSelectedRichQuestions();
+      if (questionsForPdf.length === 0) {
+        showToast("请先选择要导出的问题", true);
+        return;
+      }
+
+      openPdfPreview(questionsForPdf, {
+        title: "ChatGPT Questions Export",
+        countLabel: "Questions"
+      });
       return;
     }
 
@@ -3761,7 +4198,10 @@
     const questionSignature = questions
       .map((question) => `${question.id}:${question.index}:${question.loaded ? "1" : "0"}:${isQuestionNavigable(question) ? "1" : "0"}:${question.anchorVersion || ""}:${question.turnNumber || ""}:${Math.round(question.anchorTop || -1)}:${Math.round(question.anchorTargetScrollTop || -1)}:${Math.round(question.anchorScrollTop || -1)}:${Math.round((question.anchorTargetRatio || 0) * 10000)}`)
       .join("|");
-    const renderSignature = `${questionSignature}::menu-only`;
+    const messageSignature = directory && !directory.hidden
+      ? getLoadedMessages().map((message) => `${message.key}:${hashFullQuestionText(message.text)}`).join('|')
+      : '';
+    const renderSignature = `${questionSignature}::menu-only::${messageSignature}`;
     if (lastRenderedQuestionSignature && renderSignature === lastRenderedQuestionSignature) {
       return;
     }
@@ -4232,6 +4672,59 @@
     return wrapper;
   }
 
+  function createQuestionForImageExport(question, index) {
+    const wrapper = document.createElement("section");
+    wrapper.className = "cqr-image-message";
+    wrapper.dataset.role = "question";
+    wrapper.style.cssText = [
+      "display:block",
+      "width:100%",
+      "margin:0",
+      "padding:0",
+      "color:#111827",
+      "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif"
+    ].join(";");
+
+    const role = document.createElement("div");
+    role.style.cssText = [
+      "margin:0 0 8px",
+      "color:#334155",
+      "font-size:15px",
+      "font-weight:700",
+      "line-height:1.4"
+    ].join(";");
+    role.textContent = `Question ${index + 1}`;
+
+    const status = selectedQuestionStatusLine(question);
+    const statusNode = document.createElement("div");
+    statusNode.style.cssText = [
+      "margin:-2px 0 8px",
+      "color:#64748b",
+      "font-size:12px",
+      "line-height:1.5"
+    ].join(";");
+    statusNode.textContent = status;
+
+    const content = document.createElement("div");
+    content.className = "cqr-image-message-content";
+    content.style.cssText = [
+      "display:block",
+      "width:100%",
+      "margin:0",
+      "padding:0",
+      "white-space:pre-wrap",
+      "word-break:break-word",
+      "font-size:15px",
+      "line-height:1.65"
+    ].join(";");
+    content.textContent = question.text;
+
+    wrapper.append(role);
+    if (status) wrapper.append(statusNode);
+    wrapper.append(content);
+    return wrapper;
+  }
+
   function createImageExportDocument(messages) {
     const width = Math.min(1080, Math.max(320, window.innerWidth - 32));
     const stage = document.createElement("div");
@@ -4289,6 +4782,76 @@
 
     messages.forEach((message) => {
       list.append(cloneMessageForImageExport(message));
+    });
+
+    root.append(title, meta, list);
+    stage.append(root);
+    document.documentElement.append(stage);
+
+    return {
+      stage,
+      root,
+      width
+    };
+  }
+
+  function createQuestionImageExportDocument(questionsForImage) {
+    const width = Math.min(1080, Math.max(320, window.innerWidth - 32));
+    const stage = document.createElement("div");
+    stage.className = "cqr-image-export-stage";
+    stage.style.cssText = [
+      "position:fixed",
+      "z-index:2147483647",
+      "inset:0",
+      "overflow:hidden",
+      "background:#ffffff",
+      "pointer-events:none"
+    ].join(";");
+
+    const root = document.createElement("div");
+    root.className = "cqr-image-export-root";
+    root.style.cssText = [
+      "position:absolute",
+      "left:50%",
+      "top:0",
+      `width:${width}px`,
+      "box-sizing:border-box",
+      "padding:42px 52px",
+      "background:#ffffff",
+      "color:#111827",
+      "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif",
+      "line-height:1.5",
+      "transform:translateX(-50%)"
+    ].join(";");
+
+    const title = document.createElement("div");
+    title.style.cssText = [
+      "margin:0 0 8px",
+      "font-size:26px",
+      "font-weight:700",
+      "line-height:1.25",
+      "color:#111827"
+    ].join(";");
+    title.textContent = "ChatGPT Questions Export";
+
+    const meta = document.createElement("div");
+    meta.style.cssText = [
+      "margin:0 0 30px",
+      "font-size:14px",
+      "line-height:1.7",
+      "color:#64748b"
+    ].join(";");
+    meta.textContent = `导出时间：${new Date().toLocaleString()} · 已选问题：${questionsForImage.length}`;
+
+    const list = document.createElement("div");
+    list.style.cssText = [
+      "display:grid",
+      "gap:22px",
+      "width:100%"
+    ].join(";");
+
+    questionsForImage.forEach((question, index) => {
+      list.append(createQuestionForImageExport(question, index));
     });
 
     root.append(title, meta, list);
@@ -4373,9 +4936,7 @@
     throw lastError || new Error("Failed to capture tab");
   }
 
-  async function renderMessagesToPngBlob(messages) {
-    const exportDocument = createImageExportDocument(messages);
-
+  async function renderImageExportDocumentToPngBlob(exportDocument) {
     try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
@@ -4431,9 +4992,37 @@
     }
   }
 
+  async function renderMessagesToPngBlob(messages) {
+    return renderImageExportDocumentToPngBlob(createImageExportDocument(messages));
+  }
+
+  async function renderQuestionsToPngBlob(questionsForImage) {
+    return renderImageExportDocumentToPngBlob(createQuestionImageExportDocument(questionsForImage));
+  }
+
   async function handleExportImage() {
     if (exportMode === "questions") {
-      showToast("问题导出仅支持 Markdown；切换到对话可导出图片。", true);
+      const questionsForImage = getSelectedExportQuestions();
+      if (questionsForImage.length === 0) {
+        showToast("请先选择要导出的问题", true);
+        return;
+      }
+
+      let blob = null;
+      try {
+        showToast("正在导出图片...");
+        blob = await renderQuestionsToPngBlob(questionsForImage);
+      } catch (error) {
+        console.error("Failed to render question PNG", error);
+        const message = error?.message === "Image export is too tall"
+          ? "图片过长，请少选几个问题后再导出"
+          : `导出图片失败：${error?.message || "请稍后重试"}`;
+        showToast(message, true);
+        return;
+      }
+
+      downloadBlob(blob, `chatgpt-questions-${currentTimestampForFile()}.png`);
+      showToast("已导出图片");
       return;
     }
 
@@ -4458,6 +5047,19 @@
 
     downloadBlob(blob, `chatgpt-conversation-${currentTimestampForFile()}.png`);
     showToast("已导出图片");
+  }
+
+  function getQuestionExportStatusText(exportQuestions) {
+    const officialStats = lastOfficialNavigationSync;
+    if (officialStats.readableCount > 0) {
+      return `问题索引：已识别 ${exportQuestions.length} 个问题，已同步官方导航 ${officialStats.readableCount} 条。`;
+    }
+
+    if (officialStats.candidateCount > 0) {
+      return `问题索引：已识别 ${exportQuestions.length} 个问题；官方导航未暴露可导出文本。`;
+    }
+
+    return `问题索引：已识别 ${exportQuestions.length} 个问题，可导出全部已记录问题。`;
   }
 
   function renderExportPanel() {
@@ -4496,7 +5098,7 @@
     const statusText = document.createElement("span");
     statusText.className = "cqr-export-status-text";
     statusText.textContent = exportMode === "questions"
-      ? `问题索引：已识别 ${exportQuestions.length} 个问题，可导出全部已记录问题。`
+      ? getQuestionExportStatusText(exportQuestions)
       : `对话消息：当前已加载 ${messages.length} 条消息，PDF 和图片只导出已加载内容。`;
 
     const captureButton = document.createElement("button");
@@ -4614,16 +5216,14 @@
     pdfButton.type = "button";
     pdfButton.className = "cqr-export-button";
     pdfButton.textContent = "导出 PDF";
-    pdfButton.disabled = exportMode === "questions";
-    if (pdfButton.disabled) pdfButton.title = "问题导出仅支持 Markdown；切换到对话可导出 PDF。";
+    pdfButton.title = exportMode === "questions" ? "导出已选问题清单为 PDF。" : "导出已选对话为 PDF。";
     pdfButton.addEventListener("click", handleExportPdf);
 
     const imageButton = document.createElement("button");
     imageButton.type = "button";
     imageButton.className = "cqr-export-button";
     imageButton.textContent = "导出图片";
-    imageButton.disabled = exportMode === "questions";
-    if (imageButton.disabled) imageButton.title = "问题导出仅支持 Markdown；切换到对话可导出图片。";
+    imageButton.title = exportMode === "questions" ? "导出已选问题清单为图片。" : "导出已选对话为图片。";
     imageButton.addEventListener("click", handleExportImage);
 
     const exportButtonGrid = document.createElement("div");
@@ -4863,7 +5463,11 @@
     });
     observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["data-message-author-role", "data-turn", "data-testid", "data-user-message-bubble",
+        "data-chatgpt-search-unit-key", "data-content-search-unit-key", "data-chatgpt-search-message-ids"]
     });
 
     window.addEventListener("scroll", scheduleScrollWork, { passive: true, capture: true });

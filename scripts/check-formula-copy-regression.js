@@ -55,6 +55,9 @@ const attentionInput = String.raw`\mathrm{head}_i
 \frac{QW_i^Q(KW_i^K)^T}{\sqrt{d_k}}
 )VW_i^V`;
 const attentionOutput = api.formatForWpsLatex(attentionInput);
+const wordAttentionOutput = api.formatForWordUnicodeMath(attentionInput);
+const compoundFractionOutput = api.formatForWordUnicodeMath(String.raw`\frac{a+b}{c-d}`);
+const radicalFractionOutput = api.formatForWordUnicodeMath(String.raw`\sqrt{\frac{a+b}{c}}`);
 
 [wpsOutput, inverseMatrixOutput, attentionOutput].forEach((output) => {
   if (/\\\s+[A-Za-z]+/.test(output)) {
@@ -79,6 +82,19 @@ const attentionOutput = api.formatForWpsLatex(attentionInput);
 
 if (/\\(?:mathrm|operatorname|text|mbox)\b/.test(attentionOutput)) {
   fail(`WPS attention output must avoid text-style commands that make WPS reject the whole formula. Got: ${attentionOutput}`);
+}
+
+if (compoundFractionOutput !== "(a+b)/(c-d)") {
+  fail(`Word UnicodeMath must group compound fraction parts. Got: ${compoundFractionOutput}`);
+}
+
+if (radicalFractionOutput !== "√((a+b)/c)") {
+  fail(`Word UnicodeMath must preserve compound fraction grouping inside radicals. Got: ${radicalFractionOutput}`);
+}
+
+const compactWordAttentionOutput = wordAttentionOutput.replace(/\s+/g, "");
+if (!compactWordAttentionOutput.includes("head_i=softmax(") || /\\(?:mathrm|operatorname|text|mbox)/.test(wordAttentionOutput)) {
+  fail(`Word UnicodeMath must keep text-function names readable without broken LaTeX commands. Got: ${wordAttentionOutput}`);
 }
 
 [

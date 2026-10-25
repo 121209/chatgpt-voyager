@@ -1,134 +1,94 @@
 # Voyager Goal Status
 
-## 当前状态
+## 2026-07-19 开发基线
 
-- 基准日期：2026-06-15
-- 分支：`main`
-- 上游状态：`main...origin/main`，当前 HEAD 为 `e1e3e66`
-- 产品状态：v0.3.0 发布候选，P0 导航核心自动化基线已通过，真实 ChatGPT 页面待人工验证
-- 当前活动 Goal：验证并稳定当前 Voyager 导航基线（自动化与缺陷修复完成，真实页面人工验证已移交）
-- 本次工作范围：只处理问题识别、目录、官方右侧横线导航共存、插件菜单入口、定位、缓存恢复、深度采集和相关性能风险
+- 分支与上游：`main...origin/main`，当前没有领先或落后提交。
+- 当前 HEAD：`9f557419c6cd9f418e82dff03a148b7f20c66962`（`9f55741`，`Add v0.3.0 release workflow`）。
+- 当前版本：`manifest.json` 与 `package.json` 均为 `0.3.0`；最新正式版本标签为 `v0.3.0`，标签对象 `03f475e`，HEAD 位于该标签之后。
+- 产品阶段：阶段 0“锁定并发布稳定基线”；退出门槛尚未满足，不得开始阶段 1。
+- 本文从 S0-01 基线交接继续维护到当前阶段 0 进度；S0-03 自动化前置已完成，真实 ChatGPT 与 Word/WPS 验收仍未完成。
 
-## 已完成事项
+## 工作区保护基线
 
-- 已阅读并综合 `AGENTS.md`、`REGRESSION_LOG.md`、README、Manifest、package scripts、内容脚本、后台、共享存储、Popup、Options、公式模块、导出逻辑和现有检查脚本。
-- 已盘点当前暂存区、未暂存区和未跟踪文件。
-- 已确认当前架构为 Manifest V3、本地存储、无运行时第三方依赖、无外部 AI API。
-- 已确认当前内容脚本同时承担 DOM 适配、索引缓存、定位、UI、一句话概览和导出等多项职责。
-- 已确认独立提示词式“总结”流程已从当前工作区移除，目录辅助信息当前命名为“一句话概览”。
-- 2026-06-15 已运行 `npm run check`，结果通过。
-- 2026-06-15 已运行 `git diff --check`，结果通过；Git 输出了现有文件的 LF/CRLF 转换警告，但没有 diff check 错误。
-- 已新增本地导航核心夹具，真实加载当前 `src/content/content.js`，用于可重复验证普通对话、重复问题、DOM 替换、实时新增、菜单入口、目录定位、虚拟化、深度采集和缓存恢复。
-- 已修复不同 turn 的相同文本或前 300 字相同问题被文本哈希合并的问题，并修复异步点击定位后访问失效 `event.currentTarget` 的运行时错误。
-- 已修复虚拟化窗口扫描序号复用时，已知 turn 仍可能跨 turn 回退匹配 element key 的边界。
-- 已减少深度采集每步的重复固定等待并扩大到 0.9 个视口步长，同时保留 10% 视口重叠；60 问题虚拟化夹具重新进入 45 秒验收窗。
-- 2026-06-15 已在真实 Chrome 中运行最终导航夹具：基础场景 7 项、虚拟化场景 4 项、缓存恢复场景 3 项全部通过；2026-06-16 当前工作区已改为不渲染插件横线、只保留菜单入口，需重新运行夹具。
-- 已明确记录真实 ChatGPT 自动化阻塞：Chrome 后端能打开真实会话，但页面 DOM 读取、只读 evaluate 和截图均在 30 秒后超时并重置内核；Windows 桌面通道因 `@oai/sky` 子路径导出错误无法启动。
+当前没有暂存改动。以下包含进入 S0-01 前已经存在的本地改动，以及阶段 0 自动验证为保护这些改动新增的夹具修复；均不回退、不擅自暂存或提交：
 
-## 当前工作区改动盘点
-
-### 暂存区
-
-| 文件 | 改动归类 | 当前验证状态 |
+| 分类 | 文件与状态 | 基线判断 |
 | --- | --- | --- |
-| `AGENTS.md` | 新增防回归开发规范 | 文档已读取；未提交 |
-| `REGRESSION_LOG.md` | 新增回归记录基础结构和首批流程记录 | `npm run check:regression-log` 已通过；未提交 |
-| `package.json` | 接入回归日志检查 | `npm run check` 已通过；未提交 |
-| `scripts/check-regression-log.js` | 检查代码改动是否同步更新回归日志 | `npm run check` 已通过；未提交 |
+| 业务实现 | `src/content/content.js`、`src/content/content.css` | 官方导航可读条目同步、问题模式 PDF/PNG 等实现候选；待真实页面验收 |
+| 自动检查与夹具 | `scripts/check-export-question-regression.js`、`scripts/check-navigation-core-fixture.js`、`tests/navigation-core-fixture.js`、`scripts/run-navigation-browser-fixture.js`、`package.json` | 静态检查与本机 headless Chrome 三场景均已通过；真实 ChatGPT 行为仍待人工验收 |
+| 产品与验收文档 | `README.md`、`docs/MANUAL_TEST_CHECKLIST.md`、`docs/VOYAGER_MVP_SPEC.md`、`docs/VOYAGER_PLAN.md` | 已随当前候选实现更新；不能当作行为已验收证据 |
+| 历史与状态记录 | `REGRESSION_LOG.md`、`docs/GOAL_STATUS.md` | 已记录高速 Chrome 夹具的初始化时序误报、聚合计数误报和实际验证结果 |
+| 未跟踪项 | `.workbuddy/`、`代码.txt` | 用途未确认；不删除、不修改、不纳入发布 |
 
-### 未暂存区
+盘点时 `git diff --stat` 为 11 个跟踪文件、968 行新增、278 行删除。该数字包含进入本任务前已有的 `docs/GOAL_STATUS.md` 改动；S0-01 完成后的最终统计可能随本文件重写变化，不能据此推断其他文件被改动。
 
-| 文件 | 改动归类 | 当前验证状态 |
-| --- | --- | --- |
-| `src/content/content.js` | 大幅扩展问题识别、缓存、虚拟化定位、实时/深度采集、菜单入口、目录、一句话概览、反馈入口和导出流程；当前不再渲染插件自绘右侧横线 | 语法、静态回归和导航夹具待本次重新验证；真实 ChatGPT 待人工验证 |
-| `src/content/content.css` | 配套菜单入口、目录状态、一句话概览、采集状态、反馈和响应式样式；旧插件 rail 保持隐藏 | 静态检查和本地夹具待本次重新验证；真实 ChatGPT 视觉待人工验证 |
-| `README.md` | 增加一句话概览和问题反馈说明 | 已与当前代码大体核对；不代表行为已验证 |
-| `REGRESSION_LOG.md` | 增加滑轨、目录、总结/概览流程及稳定问题身份相关历史记录 | `npm run check:regression-log` 已通过；未提交 |
-| `package.json` | 接入目录、一句话概览和导航夹具静态检查 | `npm run check` 已通过 |
+## 当前已实现能力（代码/文档证据）
 
-### 未跟踪文件
+- 识别常见 ChatGPT turn 与直接 user-role DOM，维护问题索引、目录搜索、实时采集、深度采集、缓存恢复和会话隔离。
+- 目录保留已记录问题；弱锚点通过验证式定位并在失败时给出状态，不把不可定位问题静默隐藏。
+- 重复文本与长前缀相同问题使用稳定身份，避免不同 turn 被合并；异步定位保留 DOM 重绘防线。
+- 不绘制 Voyager 第二套右侧问题横线，保留 ChatGPT 官方导航；当前候选实现可读取官方导航暴露的可复制标题并补入问题索引，但不接管官方点击或滚轮。
+- 对当前已加载 assistant 回复生成本地提取式“一句话概览”；不宣称为 AI 语义总结。
+- 导出页区分“问题”和“对话”：问题模式基于已记录问题索引，支持 Markdown、PDF、PNG；对话模式只导出当前已加载消息，不宣称包含未加载回答。
+- 公式复制包含 Word UnicodeMath、WPS LaTeX、Markdown LaTeX 和原始 LaTeX 路径；WPS 路径已有断裂命令、文本样式命令和单行输出防线。
+- 默认本地处理，不增加外部对话上传或新权限。
 
-| 文件 | 改动归类 | 当前验证状态或风险 |
-| --- | --- | --- |
-| `scripts/check-question-directory-regression.js` | 保护混合 DOM 扫描、目录完整性和稳定问题身份 | 已由 `npm run check` 执行并通过；静态检查与 Chrome 夹具相互补充 |
-| `scripts/check-answer-overview-regression.js` | 保护一句话概览并禁止提示词式总结流程回归 | 已由 `npm run check` 执行并通过；仅为源码字符串静态检查 |
-| `scripts/check-navigation-core-fixture.js` | 检查导航夹具覆盖范围和真实内容脚本加载 | 已由 `npm run check` 执行并通过 |
-| `scripts/serve-navigation-fixture.js`、`tests/navigation-core-fixture.*` | 提供可重复的真实内容脚本浏览器场景 | 真实 Chrome 三组夹具共 14 项通过 |
-| `.github/ISSUE_TEMPLATE/*` | Bug、功能建议和反馈入口模板 | 已人工读取；未做 YAML 或 GitHub 实际验证 |
-| `.workbuddy/memory/2026-05-25.md` | 历史工作记忆 | 内容称当时修改已回退；不能用于描述当前工作区状态 |
-| `代码.txt` | 空文件 | 用途未知；不要擅自删除或纳入产品范围 |
-| `docs/*` | 本次新增的项目规格、计划、状态和手工测试文档 | 待本次文档检查完成 |
+以上“已实现”只表示当前工作区存在代码、静态检查或夹具证据，不等于真实 ChatGPT/Word/WPS 行为已经通过。
 
-## 当前实现能力
+## 验证状态
 
-以下能力在当前代码中存在，但“存在”不等于已经通过真实浏览器验收：
+### 已有证据
 
-- 用户问题识别、去重和误识别过滤。
-- ChatGPT 官方右侧横线导航共存、Voyager 菜单入口和目录内定位。
-- 目录搜索、缓存问题状态、问题与回答配对及一句话概览。
-- 实时采集、深度采集、会话缓存、备份缓存和多策略问题定位。
-- Markdown 复制与下载、PDF 打印预览、PNG 分段截图导出。
-- 公式提取、Word UnicodeMath、WPS LaTeX、Markdown LaTeX 和原始 LaTeX 复制。
-- Popup 文件夹和快捷设置存储。
-- Options 提示词库本地增删。
+- 历史记录显示既有静态回归、JavaScript 语法检查和本地导航夹具曾通过；这些记录用于保护边界，不能替代当前工作区重跑。
+- S0-01 已核对 `AGENTS.md`、`REGRESSION_LOG.md`、`docs/VOYAGER_PLAN.md`、`docs/VOYAGER_MVP_SPEC.md`、原 `docs/GOAL_STATUS.md`、`docs/MANUAL_TEST_CHECKLIST.md`，以及当前 Git 状态、diff、提交和标签。
+- S0-01 使用 `rg` 核对了阶段 0 范围、P0 入口、`package.json` 的 `npm run check` 链和相关实现/回归脚本入口。
+- S0-02 在保护全部未提交改动的前提下顺序运行 `npm run check`、`npm run build`、`git diff --check`，三项退出码均为 0。`npm run check` 及构建内再次执行的完整检查均通过回归日志门禁、目录/一句话概览/导出/导航夹具/官方导航/公式复制静态回归和主要 JavaScript 语法检查。
+- S0-02 核对 `scripts/build-dist.js`：构建会重建被 `.gitignore` 忽略的 `dist/`，复制 `manifest.json`、`README.md`、`NOTICE.md`、`package.json`、完整 `src/` 与 `assets/`。本次构建输入和 `dist/` 均为 23 个文件，逐文件 SHA-256 比较为 0 缺失、0 不一致、0 额外文件。
+- S0-02 已确认 `dist/` 中存在 Manifest、content/background/shared、popup/options、formulaCopy、相关样式、hero 资源和 16/32/48/128 图标；关键源码与对应产物二进制一致，可作为 S0-03 待加载候选。
+- S0-02 命令前后 `git status` 与 `git diff --stat` 一致：仍为原有 11 个跟踪文件改动（977 行新增、284 行删除）及未处理的 `.workbuddy/`、`代码.txt`，没有暂存改动，也没有因构建产生新的跟踪改动。
+- S0-03 自动化前置新增 `npm run check:browser-fixture`：使用本机 headless Chrome 和隔离配置顺序运行 basic、virtualized、restore。basic 10 个、virtualized 4 个、restore 3 个功能断言全部 PASS，三个场景均无未捕获运行时错误；restore 与 virtualized 共用配置，覆盖缓存恢复连续性。
+- 完成上述夹具修复后，`npm run check:regression-log`、`npm run check`、`npm run build` 和 `git diff --check` 再次全部通过，`dist/` 已按当前工作区重建；仅有既有 LF/CRLF 转换提示。
+- 已建立 `docs/STAGE0_ACCEPTANCE.json` 与独立门禁 `npm run check:stage0-acceptance`：固定 M-01 至 M-12 和 20 个 Word/WPS 公式语料，自动校验版本、记录结构和当前转换输出。当前真实状态为 ChatGPT 2/12 PASS（其余 M-03 至 M-12 BLOCKED）、Word 0/20、WPS 0/20，发布门禁明确为 PENDING。
+- 固定公式语料发现并修复了 Word UnicodeMath 复合分数丢失括号、文本函数破坏为 `\\mathrmhead` 的问题；矩阵和分段函数尚未宣称兼容，已作为必须在真实 Word/WPS 中记录结果或限制的用例。
+- 公式修复后重新运行 Chrome 三场景、完整检查和构建，全部通过；最终 20 公式提示生成数量为 20，`dist/` 与 23 个构建输入逐文件 SHA-256 比较为 0 缺失、0 不一致、0 额外文件。
 
-## 已验证与尚未验证
+### 当前仍未验证
 
-### 已验证
+- `docs/MANUAL_TEST_CHECKLIST.md` 的 M-01 至 M-12 尚无本轮全部 PASS 的真实 Chrome 证据。
+- 官方导航在真实 ChatGPT 页面是否暴露可读标题，以及同步后的数量、顺序、重复问题身份和非干扰行为，仍需人工验证。
+- 问题模式 PDF 打印预览、PNG 下载、长内容限制提示，以及对话模式完整性边界，仍需真实页面验证。
+- 短/长对话、重复问题、虚拟滚动、刷新恢复、会话切换、新建会话转持久会话、深度采集取消与滚动位置恢复，仍需真实页面验证。
+- 至少 20 个代表性公式在真实 Word/WPS 中的通过结果或明确兼容限制尚未形成验收记录。
+- 从重新生成的 `dist/` 加载扩展并完成行为验收尚未执行。
 
-- `npm run check`：2026-06-15 通过。
-- `npm run check:regression-log`：由 `npm run check` 执行并通过。
-- `scripts/check-question-directory-regression.js`：由 `npm run check` 执行并通过。
-- `scripts/check-answer-overview-regression.js`：由 `npm run check` 执行并通过。
-- 真实 Chrome 基础夹具：历史记录为 7/7 通过；当前菜单入口改动后基础夹具应重新验证无插件重复 marker、目录数量、目录点击定位、DOM 替换、实时新增、空闲不重建重复 marker 和运行时错误检查。
-- 真实 Chrome 虚拟化夹具：4/4 通过，覆盖从中间进入、向上加载更早问题、两个相同文本问题保持独立、深度采集 60/60 在 45 秒验收窗内完成，以及运行时错误检查。
-- 真实 Chrome 缓存恢复夹具：历史记录为 3/3 通过，覆盖刷新后目录/右侧导航恢复、两个相同文本问题仍为两条记录、缓存首项定位和运行时错误检查；当前工作区需重新运行。
-- 主要 JavaScript 文件 `node --check`：由 `npm run check` 执行并通过。
-- `git diff --check`：2026-06-15 通过。
+## 历史回归边界
 
-### 尚未验证
+- `2026-05-27 - 滑轨滚轮向下滚动回弹`：不得恢复自绘滑轨或重新拦截官方导航滚轮。
+- `2026-05-29 - 三横线目录只显示部分问题`：目录必须保留全部已记录问题，不能只依赖当前可见 DOM 或强锚点。
+- `2026-06-15 - 删除无效且冗余的总结提示词流程`、`回答预览只截取开头`：辅助信息必须称为“一句话概览”，不得冒充 AI 总结。
+- `2026-06-15 - 相同或长前缀相同的问题被目录和滑轨合并`：目录、缓存、定位和导出必须继续使用稳定问题身份。
+- `2026-06-16 - 插件横线与 ChatGPT 官方问题导航重复`：不得恢复 Voyager 第二套横线，不得接管官方导航点击和滚轮。
+- `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息`：问题索引可来自缓存/采集；对话和回答完整性仍必须以实际加载为边界。
+- `2026-06-16 - WPS LaTeX 公式复制输出断裂命令`、`WPS LaTeX 不接受文本样式命令`：不得恢复断裂命令、WPS 不稳定文本样式命令或多行输出。
+- `2026-06-21 - 导出问题索引未复用官方可读导航条目`：只能读取官方可复制标题，不得把不可读 marker 伪造成问题正文。
+- `2026-06-22 - 问题模式下 PDF 和图片导出按钮不可点击`：问题模式必须允许导出所选问题清单；不得借此声称未加载回答已导出。
 
-- 当前工作区在真实 Chrome 和真实 ChatGPT 页面的完整行为。
-- 真实 ChatGPT 官方右侧横线导航是否不被 Voyager 菜单入口遮挡或重复绘制；本地夹具需随当前工作区重新验证无插件 marker。
-- 目录是否在真实 ChatGPT 不同 DOM 结构、长对话和虚拟化场景下保持完整；普通本地夹具已通过。
-- 深度采集取消和恢复原位置的真实页面边界行为；深度采集完整性与缓存重载已由夹具通过。
-- 一句话概览在多条助手消息、流式回复和未加载历史消息中的准确性。
-- 当前工作区的 `npm run build` 和从 `dist/` 加载后的行为。
-- PDF、PNG、公式复制在真实目标应用中的兼容性。
-- Popup、Options 和快捷设置的真实交互。
-- Issue 模板在 GitHub 中的实际显示。
-- Chrome 之外的 Chromium 浏览器。
+## 阶段 0 四个顺序任务
 
-## 已知风险
+1. **S0-01 更新开发基线（本任务）**：核对 Git、代码、文档、历史回归与测试入口，只更新本状态文档。状态：已完成；`npm run check` 与 `git diff --check` 通过，仅有现有 LF/CRLF 转换警告。
+2. **S0-02 建立自动检查与构建基线（本任务）**：状态：已完成。`npm run check`、`npm run build`、`git diff --check` 均通过；`dist/` 23 个文件与当前构建输入逐文件 SHA-256 一致，必要入口齐全；命令前后 Git 状态一致。唯一非阻塞警告为现有改动文件的 LF/CRLF 转换提示。
+3. **S0-03 执行真实 Chrome P0 验收**：状态为进行中。自动化前置已经通过本机 Chrome 的 basic 10 项、virtualized 4 项、restore 3 项和三组运行时错误检查；下一步必须从当前 `dist/` 重新加载扩展，按 M-01 至 M-12 记录真实 ChatGPT 的 PASS/FAIL/BLOCKED 证据。发现缺陷时按防回归流程另行处理。
+4. **S0-04 完成公式与发布候选验收**：验收工具准备已完成，但执行仍须等待 S0-03 全部 PASS。届时在 Word/WPS 记录固定 20 个公式结果，汇总已知限制，运行 `npm run check:stage0-acceptance -- --require-complete`，再复核阶段 0 全部退出门槛并形成 `v0.3.1` 发布候选结论；门槛未满足则保持阶段 0。
 
-1. `src/content/content.js` 当前约 4,833 行，且本地 diff 增加约 3,864 行、删除约 630 行；改动面大，静态检查不足以证明行为稳定。
-2. 当前改动同时分布在暂存区、未暂存区和未跟踪文件中，任何后续修改都必须先重新检查工作区，避免覆盖或遗漏。
-3. 目录、菜单入口、缓存和定位逻辑高度耦合，修复一个入口可能重新引入历史回归。
-4. 导航夹具已补足主要 DOM、滚动和异步时序场景，但真实 ChatGPT DOM 仍可能与夹具不同。
-5. `panelOpen`、`autoRefresh`、`showTimeline`、`showPromptDock`、`exportFormat`、`panelPosition` 等设置主要存在于存储和 Popup，未确认内容脚本实际消费。
-6. Popup 提供 JSON 默认导出选项，但当前核心导出 UI 没有 JSON 导出闭环。
-7. 提示词库可以本地管理，但当前没有接入 ChatGPT 页面使用流程。
-8. Manifest 只匹配 `https://chatgpt.com/*`；其他域名不在当前支持范围。
-9. Manifest 和 package 版本已对齐到 `0.3.0`，计划发布标签为 `v0.3.0`；远端已有旧标签 `v0.3` 指向发布前提交，不复用或覆盖。
-10. `dist/` 是忽略目录，可能与当前源码不同步；本次没有重建，以避免在仅整理文档阶段覆盖现有本地产物。
+顺序约束：S0-01 → S0-02 → S0-03 → S0-04。后续任务必须重新读取当前工作区状态，不得把本文的实现候选描述当作实时测试结果。
 
-## 关键决策
+## S0-03 直接交接范围
 
-- MVP 核心是长对话问题导航、目录、缓存恢复和 Markdown 复用，不以增强功能数量作为完成标准。
-- 目录展示已记录问题；弱锚点目录项点击时必须通过验证式定位尝试跳转，并在失败时提示。插件不渲染第二套右侧问题横线。
-- “一句话概览”是本地提取式辅助信息，不是外部 AI 语义总结。
-- 在真实 Chrome 行为基线建立前，不重构 `content.js`，也不继续扩展新功能。
-- 当前工作区是下一阶段验证对象，但未经验证的能力不能标记为完成。
-- 默认保持本地处理，不新增外部 API 或网络请求。
-- 不再把截断问题文本哈希当成问题身份；优先使用 ChatGPT turn number，缺少结构身份时才使用更弱的回退键。
-- 自动化夹具必须加载真实 `src/content/content.js`，不能用测试替身重新实现导航逻辑。
+S0-03 应直接使用 2026-07-19 最后一次 `npm run build` 重新生成的 `dist/`，在 Chrome 扩展页重新加载后按 `docs/MANUAL_TEST_CHECKLIST.md` 执行 M-01 至 M-12。必须记录 Chrome 版本、加载来源、测试对话、规模和 PASS/FAIL/BLOCKED 证据，重点覆盖官方导航非干扰、目录完整性与重复问题身份、缓存/会话隔离、深度采集取消和滚动恢复、问题/对话模式 Markdown/PDF/PNG 边界。动态本地夹具虽已通过，但没有使用真实 ChatGPT DOM、账号会话、下载/打印交互或目标办公软件，不能替代 S0-03 行为验收与 S0-04 Word/WPS 公式验收。开始人工验收前仍需保护当前全部未提交改动，不得清理 `.workbuddy/` 或 `代码.txt`。
 
-## 下一步
+### 2026-08-11 续测阻塞证据
 
-按 `docs/MANUAL_TEST_CHECKLIST.md` 在真实 ChatGPT 页面人工执行 P0 导航用例，重点确认官方右侧横线不被插件重复绘制或遮挡、目录完整性、深度采集取消/恢复原位置和刷新恢复。自动化继续前无需新增功能。
-
-## 阻塞项
-
-- 真实 ChatGPT 页面自动化受阻：Chrome 后端能打开会话页，但 DOM 读取、只读 evaluate 和截图均在 30 秒后超时并重置内核；Windows 桌面通道启动时报 `@oai/sky` 子路径未从 package exports 导出。
-- 尚未确认是否允许重建现有忽略目录 `dist/`。
-- 空文件 `代码.txt` 和 `.workbuddy/` 属于本地辅助文件，不纳入 `v0.3.0` 发布提交；Issue 模板纳入版本控制。
+- 已重新连接真实、已登录的 Chrome；当前可见标签为 `https://chatgpt.com/` 空白新聊天，没有现成的 30+ 用户问题对话。
+- Chrome 自动化的 URL 安全策略拒绝进入 `chrome://extensions`。因此无法在不绕过安全策略的前提下重新加载当前 `dist/`；本轮没有把未知加载版本的扩展当作验收对象。
+- 没有发现可归因于 Voyager 的真实产品缺陷，不能仅凭控制策略和测试数据缺失创建修复或修改业务代码。
+- `docs/STAGE0_ACCEPTANCE.json` 已保留 M-03 至 M-12 为 `BLOCKED` 并写入本轮证据。恢复验收前，需要用户在 Chrome 的扩展管理页手动从 `C:\\Users\\sp202\\Documents\\New project\\dist` 重新加载扩展，并提供或准备至少 30 个用户问题的已保存 ChatGPT 对话；之后从 M-03 继续，不进入 S0-04。
