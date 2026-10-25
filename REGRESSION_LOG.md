@@ -173,3 +173,14 @@
 - 回归测试：运行 `npm run check:regression-log`；运行 `npm run check`；运行 `git diff --check`；推送后检查 GitHub Actions 和 Release 页面。
 - 验证结果：已检查 `AGENTS.md`、`REGRESSION_LOG.md`、`.github/ISSUE_TEMPLATE/*`、发布标签、打包脚本和本机 GitHub 工具可用性；本次只新增 release 发布通道，不修改扩展运行逻辑。
 - 相关文件：`.github/workflows/release-v0.3.0.yml`、`REGRESSION_LOG.md`
+
+## 2026-10-25 - README 未突出三个核心功能及安装排查入口
+
+- 问题现象：组员将插件概括为“问题导航、对话导出、公式复制”，同时反馈安装后 ChatGPT 网页没有反应；GitHub README 仍是长篇实现清单，三个核心功能和页面内入口不够明确，本地精简版也尚未同步到 GitHub。
+- 原因及影响范围：首页以模块和实现细节组织内容，安装说明没有集中强调刷新现有页面、网站访问权限及入口触发方式；默认“问题”导出模式容易被误认为包含回答。本次只更新 README 和本条修复记录，不发布工作区其他尚未提交的功能改动，也不将文档更新视为实站兼容性修复。
+- 历史关联：对照本地 `2026-09-11 - README 内容重复且实现细节挤占使用说明`，该次已精简本地文档，但尚未同步 GitHub，且未突出三项核心能力与安装排查；继续保留 `2026-06-16 - 插件横线与 ChatGPT 官方问题导航重复` 和 `2026-06-16 - 导出菜单只识别当前已加载的 24 条消息` 的行为边界。
+- 修复方式：首页首句明确三个核心功能，以表格对应能力和入口，使用章节按同一顺序展开；文件夹和提示词归为辅助功能；新增“安装后网页没有反应”五步排查，强调扩展重新加载后还须刷新页面；明确问题清单与已加载问答的区别，保留四种公式格式、兼容限制和来源说明。核对 GitHub 当前内容脚本，未将仅本地存在的官方标题同步、问题模式 PDF/PNG 能力写成已发布特性。
+- 已检查本地文件：`AGENTS.md`、本日志、`README.md`、`manifest.json`、`package.json`、`NOTICE.md`、`src/content/content.js`、`src/content/content.css`、`src/content/formulaCopy/FormulaCopyManager.js`、`src/content/formulaCopy/clipboard.js`、`src/popup/popup.js`、`src/options/options.js`、`scripts/build-dist.js`、`scripts/check-regression-log.js` 及已有 Git diff；另通过 GitHub 连接器读取远端 README、内容脚本和回归日志，区分公开版本与本地开发改动。
+- 回归测试：纯文档调整不新增业务测试；运行 `npm run check:regression-log`、`npm run check`、`git diff --check`，检查 README 本地图片/文档链接。人工验证步骤：预览 GitHub README，核对首句、三项功能表、安装步骤、导出范围表和公式格式表；按新增排查步骤确认加载目录、启用状态、访问权限及刷新顺序。
+- 验证结果：本地 `npm run check:regression-log`、`npm run check`、`git diff --check` 通过；真实 ChatGPT、Word/WPS 人工验收本次未执行，因为未修改运行逻辑，现有发布验收仍为 PENDING。GitHub 同步仅包含 README 和本条新增记录，保留远端原有日志及本地原有修改。
+- 相关文件：`README.md`、`REGRESSION_LOG.md`。
