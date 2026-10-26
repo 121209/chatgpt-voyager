@@ -337,3 +337,12 @@
 - 回归测试：纯文案不新增或重复运行业务测试；运行 npm run check:regression-log、git diff --check，检查下载链接与使用入口。人工验证：预览 README，按四步加载插件后逐项操作。
 - 验证结果：日志及 diff 检查通过；未执行浏览器人工验证，因为本次仅精简文案。
 - 相关文件：README.md、REGRESSION_LOG.md。
+
+## 2026-10-26 - 恢复精简前的 README
+
+- 问题现象：上次精简误删宣传图，用户要求图片及其他内容全部恢复到精简前。
+- 历史关联：撤回上一条“README 收敛为安装和功能用法”对 README 的改写；该次未保留图片，精简超出用户预期。
+- 修复方式：README 完整恢复为提交 2c6190a 的原文，不再调整内容；保留修复日志用于追溯。
+- 已检查本地文件：AGENTS.md、REGRESSION_LOG.md、README.md、assets/chatgpt-voyager-hero.png 及 Git status/diff；核对 GitHub 历史 README。
+- 验证方式：检查恢复内容与历史版本逐字一致、图片文件存在，运行 npm run check:regression-log 和 git diff --check。仅恢复文档，不重复业务测试；人工可刷新项目首页确认图片与正文。
+- 相关文件：README.md、REGRESSION_LOG.md。
