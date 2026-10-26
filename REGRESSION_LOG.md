@@ -316,3 +316,14 @@
 - 回归测试：版本升级后重跑 `npm run check` 全链（回归日志门禁、6 项静态回归、stage0 验收门禁、语法检查）与 `npm run build`；发布后通过 GitHub API 验证 Release 与 zip 附件存在。
 - 验证结果：本地 `npm run check` 全链与 `npm run build` 在 0.4.0 版本下通过；`git push` 经 HTTPS 凭据管理器完成（本机 SSH 密钥未被 GitHub 接受），推送前合并了远端已有的 README 同步提交 788ccc0（回归日志冲突按本地超集解决，README 两边完全一致）。tag `v0.4.0` 推送后 GitHub Actions "Publish v0.4.0 Release" 运行成功；Release 页面 https://github.com/121209/chatgpt-voyager/releases/tag/v0.4.0 已创建（非 draft、非 prerelease），附件 `chatgpt-voyager-v0.4.0.zip` 存在且可下载。阶段 0 实站人工验收与 Word/WPS 公式验收仍为 PENDING，未随本次发布改变。
 - 相关文件：`manifest.json`、`package.json`、`docs/STAGE0_ACCEPTANCE.json`、`.github/workflows/release-v0.4.0.yml`、`REGRESSION_LOG.md`
+
+## 2026-10-26 - README 未同步 v0.4.0 发布后的修复与使用方式
+
+- 问题现象：用户已在 2026-10-25 将本地修复版发布为 v0.4.0，但 README 仍沿用发布前文案，没有明确新安装包、旧版更新步骤及本轮已解决问题；导出说明也未体现问题模式现已支持 PDF/PNG。
+- 原因及影响范围：`2026-10-25 - README 未突出三个核心功能及安装排查入口` 按当时远端旧代码编写，主动排除了尚未发布能力；随后代码和 Release 已更新，首页缺少版本与修复说明的同步。本次仅修改 README 和本条记录，不修改扩展逻辑、版本、验收状态或既有 Release 资产。
+- 历史关联：对照 `2026-09-11 - README 内容重复且实现细节挤占使用说明`，继续保留面向用户的精简结构；关联 2026-10-25 三轮问答识别/回答配对修复及 v0.4.0 发布记录、`2026-06-22 - 问题模式下 PDF 和图片导出按钮不可点击`、`2026-07-19 - Word UnicodeMath 复合分数丢失分组且文本函数命令破损`。前一次 README 防线未失效于运行代码，而是发布后的文档基准发生变化。
+- 修复方式：新增 v0.4.0 发布日期、发布页和 ZIP 直链，以用户现象表说明新版消息识别、回答配对、重复问题身份、流式刷新、问题清单 PDF/PNG 和公式转换改进；拆分首次安装与旧版更新，要求核对版本、重新加载扩展并刷新 ChatGPT；补充实时采集、可取消的深度采集、官方可读标题补充及本地概览；明确问题清单与已加载问答均可导出 Markdown/PDF/PNG，问题索引不等于完整回答正文；区分发布前 9 场景证据、默认 8 个公开夹具与尚未完成的真实应用验收。
+- 已检查本地文件：`AGENTS.md`、本日志、`README.md`、`manifest.json`、`package.json`、`src/content/content.js`、`src/content/formulaCopy/FormulaCopyManager.js`、`src/content/formulaCopy/clipboard.js`、`src/content/content.css`、`scripts/run-navigation-browser-fixture.js`、`scripts/build-dist.js`、`docs/STAGE0_ACCEPTANCE.json`、`.github/workflows/release-v0.4.0.yml`、原有 Git status/diff 和近期提交；另核对 GitHub main 提交、README/回归日志及最新 Release 的日期、版本、说明和 ZIP 附件。远端 main 与本地 HEAD 同为 `0b70420`，两个文档的 Git blob 均一致，未将过期的 origin/main 跟踪信息当作实时远端状态。
+- 回归测试：本次为纯文档更新，不新增业务测试、不重复运行浏览器业务夹具；运行 `npm run check`（含 `npm run check:regression-log`）、`git diff --check`、README 链接/代码围栏/表格检查，并对比开始时 51 个跟踪文件的 SHA-256，确认只有 README 和本日志发生变化。人工验证步骤：预览项目首页；按 ZIP 直链下载、解压、加载包含 manifest 的目录并核对 0.4.0；重载扩展后刷新对话，检查目录概览、问题/对话两种导出范围和公式复制格式。后者是用户可执行的验证步骤，不作为本次已完成的实站验收。
+- 验证结果：`npm run check`、`npm run check:regression-log`、`git diff --check` 和 README 结构/链接检查通过；自动验收记录仍报告 ChatGPT 2/12 PASS、Word 0/20、WPS 0/20，发布门禁 PENDING。文档更新不需重新构建安装包，未运行真实 ChatGPT/Word/WPS 人工验收，也未改动既有业务文件及未跟踪资料。
+- 相关文件：`README.md`、`REGRESSION_LOG.md`。
