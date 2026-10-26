@@ -327,3 +327,13 @@
 - 回归测试：本次为纯文档更新，不新增业务测试、不重复运行浏览器业务夹具；运行 `npm run check`（含 `npm run check:regression-log`）、`git diff --check`、README 链接/代码围栏/表格检查，并对比开始时 51 个跟踪文件的 SHA-256，确认只有 README 和本日志发生变化。人工验证步骤：预览项目首页；按 ZIP 直链下载、解压、加载包含 manifest 的目录并核对 0.4.0；重载扩展后刷新对话，检查目录概览、问题/对话两种导出范围和公式复制格式。后者是用户可执行的验证步骤，不作为本次已完成的实站验收。
 - 验证结果：`npm run check`、`npm run check:regression-log`、`git diff --check` 和 README 结构/链接检查通过；自动验收记录仍报告 ChatGPT 2/12 PASS、Word 0/20、WPS 0/20，发布门禁 PENDING。文档更新不需重新构建安装包，未运行真实 ChatGPT/Word/WPS 人工验收，也未改动既有业务文件及未跟踪资料。
 - 相关文件：`README.md`、`REGRESSION_LOG.md`。
+
+## 2026-10-26 - README 收敛为安装和功能用法
+
+- 问题现象：上一条 README 更新加入过多版本、修复、测试和开发说明，用户要求仅保留插件安装及各功能使用方法。
+- 历史关联：引用上一条“README 未同步 v0.4.0 发布后的修复与使用方式”和 2026-09-11 文档精简记录；此前未限制首页篇幅，本次删除扩展说明而保留实际操作。
+- 修复方式：保留四步安装、更新方式及问题导航、对话导出、四种公式格式、会话文件夹、提示词与设置的简短用法。
+- 已检查本地文件：AGENTS.md、REGRESSION_LOG.md、README.md、现有 Git status/diff；沿用本轮已核对的内容脚本、公式工具条和发布附件，未改业务代码或覆盖原有记录。
+- 回归测试：纯文案不新增或重复运行业务测试；运行 npm run check:regression-log、git diff --check，检查下载链接与使用入口。人工验证：预览 README，按四步加载插件后逐项操作。
+- 验证结果：日志及 diff 检查通过；未执行浏览器人工验证，因为本次仅精简文案。
+- 相关文件：README.md、REGRESSION_LOG.md。
